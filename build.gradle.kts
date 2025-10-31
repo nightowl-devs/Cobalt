@@ -34,6 +34,14 @@ dependencies {
   modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
 
   modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+
+  modImplementation("org.lwjgl:lwjgl-nanovg:${lwjglVersion}")
+  include("org.lwjgl:lwjgl-nanovg:${lwjglVersion}")
+
+  listOf("windows", "linux", "macos", "macos-arm64").forEach {
+    modImplementation("org.lwjgl:lwjgl-nanovg:${lwjglVersion}:natives-$it")
+    include("org.lwjgl:lwjgl-nanovg:${lwjglVersion}:natives-$it")
+  }
 }
 
 tasks {

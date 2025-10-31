@@ -1,20 +1,26 @@
 package org.cobalt.api.event
 
-class Event(private val cancellable: Boolean = true) {
+abstract class Event(private val cancellable: Boolean = false) {
 
-  var isCancelled: Boolean = false
+  private var value: Boolean = false
+
+  fun setCancelled(value: Boolean) {
+    if (cancellable) {
+      this.value = value
+    }
+  }
 
   fun isCancelled(): Boolean {
     if (!cancellable) {
       return false
     }
 
-    return isCancelled
+    return value
   }
 
   fun post(): Boolean {
     EventBus.post(this)
-    return isCancelled
+    return isCancelled()
   }
 
 }

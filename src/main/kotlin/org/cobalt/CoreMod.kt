@@ -1,13 +1,19 @@
 package org.cobalt
 
 import net.fabricmc.api.ClientModInitializer
-import org.cobalt.loader.Loader
+import net.minecraft.client.MinecraftClient
+import org.cobalt.util.helper.TickScheduler
 
-class CoreMod : ClientModInitializer{
+object CoreMod : ClientModInitializer{
 
+  val mc: MinecraftClient
+    get() = MinecraftClient.getInstance()
+
+  @Suppress("UNUSED_EXPRESSION")
   override fun onInitializeClient() {
-    /** Call constructor of each class which initializes the class */
-    Loader
+    TickScheduler
+
+    println("Cobalt Mod Initialized")
   }
 
 }

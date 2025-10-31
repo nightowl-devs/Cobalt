@@ -1,6 +1,8 @@
 package org.cobalt.api.event.impl
 
-abstract class TickEvent {
+import org.cobalt.api.event.Event
+
+abstract class TickEvent: Event() {
   class Start(): TickEvent()
   class End(): TickEvent()
 }
