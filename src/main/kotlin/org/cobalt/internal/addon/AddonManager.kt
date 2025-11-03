@@ -16,7 +16,7 @@ object AddonManager {
       try {
         addon = entrypoint.getEntrypoint()
       } catch (ex: Exception) {
-        throw Exception("Could not load module: ${ex.message}")
+        throw Exception("Could not load addon: ${ex.message}")
       }
 
       addon.name = metadata.name
