@@ -19,7 +19,7 @@ abstract class BreakBlock_ClientPlayerInteractionManagerMixin {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.world != null) {
             BlockState oldBlock = mc.world.getBlockState(pos);
-            BlockState newBlock = Blocks.AIR.getDefaultState();
+            BlockState newBlock = Blocks.AIR.getDefaultState(); // id need to do a different mixin target to get new block, ill do that tmr (soon:tm:)
             new BlockChangeEvent(pos, oldBlock, newBlock).post();
         }
     }

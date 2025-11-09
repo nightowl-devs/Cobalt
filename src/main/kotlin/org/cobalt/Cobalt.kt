@@ -33,7 +33,6 @@ object Cobalt : ClientModInitializer {
     listOf(
       TickScheduler,
       DiscordPresence,
-      this
     ).forEach { EventBus.register(it) }
 
     DiscordPresence.connect()
