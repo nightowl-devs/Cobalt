@@ -22,4 +22,13 @@ object MainCommand : Command(
     ungrabbed = !ungrabbed
   }
 
+  @SubCommand
+  fun reload() {
+    org.cobalt.internal.loader.Loader.reload()
+  }
+
+  @SubCommand
+  fun unload() {
+    org.cobalt.internal.loader.Loader.unload()
+  }
 }

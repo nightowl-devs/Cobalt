@@ -36,7 +36,7 @@ object Cobalt : ClientModInitializer {
       DiscordPresence,
       TestArea
     ).forEach { EventBus.register(it) }
-
+    org.cobalt.internal.loader.Loader.initialize()
     DiscordPresence.connect()
     println("Cobalt Mod Initialized")
   }

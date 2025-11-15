@@ -9,5 +9,6 @@ abstract class Addon {
   lateinit var authors: List<String>
 
   abstract fun onInitialize()
+  abstract fun onUnload()
 
 }

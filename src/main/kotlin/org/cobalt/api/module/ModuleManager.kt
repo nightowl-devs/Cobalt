@@ -18,5 +18,13 @@ object ModuleManager {
       .distinct()
       .sortedBy { it.name }
   }
+  
+  fun clearModules() {
+    moduleList.clear()
+  }
+
+  infix fun removeModule(module: Module) {
+    moduleList?.remove(module)
+  }
 
 }

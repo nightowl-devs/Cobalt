@@ -100,5 +100,8 @@ object CommandManager {
       argBuilder.then(buildArguments(params, index + 1, method, command))
     }
   }
+  fun removeCommand(command: Command) {
+    commands.remove(command)
+  }
 
 }
