@@ -9,6 +9,11 @@ import net.minecraft.util.Formatting
 import org.cobalt.Cobalt.mc
 
 object ChatUtils {
+  /**
+   * Function to display a message in Minecraft chat with the prefix "[Cobalt Debug]"
+   * 
+   * @param message The string to send to chat after the prefix
+   */
   @JvmStatic
   fun sendDebug(message: String) {
     mc.inGameHud.chatHud.addMessage(
@@ -16,6 +21,12 @@ object ChatUtils {
         .append(Text.literal("${Formatting.RESET}$message"))
     )
   }
+
+  /**
+   * Function to display a message in Minecraft chat with the prefix "[Cobalt]" (default prefix)
+   * 
+   * @param message The string to send to chat after the prefix
+   */
   @JvmStatic
   fun sendMessage(message: String) {
     mc.inGameHud.chatHud.addMessage(
@@ -23,6 +34,16 @@ object ChatUtils {
         .append(Text.literal("${Formatting.RESET}$message"))
     )
   }
+
+  /**
+   * Function to create a gradient
+   * 
+   * @param text The string for the gradient
+   * @param startRgb The color for the start of the gradient, Int
+   * @param endRgb The color for the end of the gradient, Int
+   * 
+   * @return Text object with a gradient with the specified colors
+   */
   @JvmStatic
   fun buildGradient(text: String, startRgb: Int, endRgb: Int): MutableText {
     val result = Text.empty()
