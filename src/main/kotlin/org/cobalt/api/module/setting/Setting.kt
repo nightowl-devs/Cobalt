@@ -9,6 +9,7 @@ import org.cobalt.api.module.Module
 abstract class Setting<T>(
   val name: String,
   val description: String,
+  val subcategory: String,
   protected var value: T,
 ) : ReadWriteProperty<Module, T>, PropertyDelegateProvider<Module, ReadWriteProperty<Module, T>> {
 

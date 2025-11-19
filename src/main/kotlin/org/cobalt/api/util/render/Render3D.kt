@@ -1,7 +1,6 @@
-package org.cobalt.api.feat.render
+package org.cobalt.api.util.render
 
 import com.mojang.blaze3d.systems.RenderSystem
-import java.awt.Color
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.VertexRendering
 import net.minecraft.util.math.Box
@@ -9,6 +8,7 @@ import net.minecraft.util.math.Vec3d
 import org.cobalt.api.event.impl.render.WorldRenderContext
 import org.cobalt.internal.helper.RenderLayers
 import org.joml.Vector3f
+import java.awt.Color
 
 object Render3D {
 
@@ -48,12 +48,12 @@ object Render3D {
   }
 
   fun drawLine(
-    context: WorldRenderContext,
-    start: Vec3d,
-    end: Vec3d,
-    color: Color,
-    esp: Boolean = false,
-    thickness: Float = 2f,
+      context: WorldRenderContext,
+      start: Vec3d,
+      end: Vec3d,
+      color: Color,
+      esp: Boolean = false,
+      thickness: Float = 2f,
   ) {
     val matrix = context.matrixStack ?: return
     val bufferSource = context.consumers as? VertexConsumerProvider.Immediate ?: return

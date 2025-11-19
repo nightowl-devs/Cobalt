@@ -81,11 +81,11 @@ object ChatUtils {
   }
 
   private val prefix = Text.literal("${Formatting.DARK_GRAY}[")
-    .append(buildGradient("Cobalt", 0x4A90E2, 0x2C5DA3))
+    .append(buildGradient("Cobalt", 0x4CADD0, 0xB2F9FF))
     .append(Text.literal("${Formatting.DARK_GRAY}] "))
 
   private val debugPrefix = Text.literal("${Formatting.DARK_GRAY}[")
-    .append(buildGradient("Cobalt Debug", 0x4A90E2, 0x2C5DA3))
+    .append(buildGradient("Cobalt Debug", 0x369876, 0x71FF9E))
     .append(Text.literal("${Formatting.DARK_GRAY}] "))
 
 }

@@ -4,7 +4,7 @@ import org.cobalt.api.module.setting.Setting
 
 abstract class Module(
   val name: String,
-  val category: Category,
+  val category: String,
 ) {
 
   var isEnabled: Boolean = false
@@ -31,8 +31,3 @@ abstract class Module(
   }
 
 }
-
-data class Category(
-  val name: String,
-  val svg: String,
-)

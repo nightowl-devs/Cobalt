@@ -7,8 +7,9 @@ import org.cobalt.api.module.setting.Setting
 class KeyBindSetting(
   name: String,
   description: String,
+  subcategory: String,
   defaultValue: Int
-) : Setting<Int>(name, description, defaultValue) {
+) : Setting<Int>(name, description, subcategory, defaultValue) {
 
   override fun read(element: JsonElement) {
     this.value = element.asInt

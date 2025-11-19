@@ -2,7 +2,6 @@ package org.cobalt.mixin.client;
 
 import net.minecraft.client.Mouse;
 import net.minecraft.client.input.MouseInput;
-import org.cobalt.accessors.MouseInput_MouseButtonAccessor;
 import org.cobalt.api.event.impl.client.MouseEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,7 +14,7 @@ public class MouseEvent_MouseMixin {
   @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)
   private void onMouseButton(long window, MouseInput input, int action, CallbackInfo ci) {
     MouseEvent event;
-    int button = MouseInput_MouseButtonAccessor.getButton(input);
+    int button = input.button();
     boolean isDown = action == 1;
 
     if (isDown) {

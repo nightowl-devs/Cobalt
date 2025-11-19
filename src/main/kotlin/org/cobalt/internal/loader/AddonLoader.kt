@@ -1,0 +1,95 @@
+package org.cobalt.internal.loader
+
+import com.google.gson.Gson
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.zip.ZipFile
+import net.fabricmc.loader.impl.launch.FabricLauncherBase
+import org.cobalt.api.addon.Addon
+import org.spongepowered.asm.mixin.Mixins
+
+object AddonLoader {
+
+  private val addonsDir: Path = Paths.get("config/cobalt/addons/")
+  private val addons = mutableListOf<Pair<AddonMetadata, Addon>>()
+  private val gson = Gson()
+
+  fun findAddons() {
+    if (!Files.isDirectory(addonsDir)) {
+      Files.createDirectories(addonsDir)
+      return
+    }
+
+    try {
+      Files.newDirectoryStream(addonsDir, "*.jar").use { stream ->
+        for (jarPath in stream) {
+          FabricLauncherBase.getLauncher().addToClassPath(jarPath)
+          loadAddon(jarPath)
+        }
+      }
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+  }
+
+  private fun loadAddon(jarPath: Path): AddonMetadata {
+    ZipFile(jarPath.toFile()).use { zip ->
+      val jsonEntry = zip.getEntry("cobalt.addon.json")
+        ?: throw IllegalStateException("Missing cobalt.addon.json in $jarPath")
+
+      val metadata = zip.getInputStream(jsonEntry).use { input ->
+        gson.fromJson(input.reader(), AddonMetadata::class.java)
+      }
+
+      synchronized(Mixins::class.java) {
+        for (mixin in metadata.mixins) {
+          Mixins.addConfiguration(mixin)
+        }
+      }
+
+      for (entrypoint in metadata.entrypoints) {
+        val classPath = entrypoint.replace('.', '/') + ".class"
+
+        if (zip.getEntry(classPath) == null) {
+          throw IllegalStateException(
+            "Entrypoint class '$entrypoint' does not exist inside ${jarPath.fileName}"
+          )
+        }
+
+        val instance = Class.forName(entrypoint).let {
+          try {
+            it.getField("INSTANCE").get(null)
+          } catch (_: NoSuchFieldException) {
+            val constructor = it.getDeclaredConstructor()
+            constructor.isAccessible = true
+            constructor.newInstance()
+          }
+        }
+
+        if (instance !is Addon) {
+          throw IllegalStateException(
+            "Entrypoint '$entrypoint' must implement Addon"
+          )
+        }
+
+        addons += metadata to instance
+      }
+
+      return metadata
+    }
+  }
+
+  fun getAddons(): List<Pair<AddonMetadata, Addon>> {
+    return addons.toList()
+  }
+
+  data class AddonMetadata(
+    val id: String,
+    val name: String,
+    val version: String,
+    val entrypoints: List<String>,
+    val mixins: List<String>,
+  )
+
+}

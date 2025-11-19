@@ -12,19 +12,19 @@ object ModuleManager {
     return moduleList
   }
 
-  fun getCategories(): List<Category> {
+  fun getCategories(): List<String> {
     return moduleList
       .map { it.category }
       .distinct()
-      .sortedBy { it.name }
+      .sortedBy { it }
   }
-  
+
   fun clearModules() {
     moduleList.clear()
   }
 
   infix fun removeModule(module: Module) {
-    moduleList?.remove(module)
+    moduleList.remove(module)
   }
 
 }

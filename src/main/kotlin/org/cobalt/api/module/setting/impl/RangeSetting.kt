@@ -10,10 +10,11 @@ import org.cobalt.api.module.setting.Setting
 class RangeSetting(
   name: String,
   description: String,
+  subcategory: String,
   private val defaultValue: Pair<Double, Double>,
   val min: Double,
   val max: Double
-) : Setting<Pair<Double, Double>>(name, description, defaultValue) {
+) : Setting<Pair<Double, Double>>(name, description, subcategory, defaultValue) {
 
   override fun read(element: JsonElement) {
     if (element.isJsonObject) {
@@ -39,5 +40,5 @@ class RangeSetting(
 
   private fun Double.roundTo(): Double =
     BigDecimal(this).setScale(1, RoundingMode.HALF_UP).toDouble()
-  
+
 }

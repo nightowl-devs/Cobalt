@@ -7,9 +7,10 @@ import org.cobalt.api.module.setting.Setting
 class ModeSetting(
   name: String,
   description: String,
+  subcategory: String,
   defaultValue: Int,
   val options: Array<String>
-) : Setting<Int>(name, description, defaultValue) {
+) : Setting<Int>(name, description, subcategory, defaultValue) {
 
   override fun read(element: JsonElement) {
     this.value = element.asInt
