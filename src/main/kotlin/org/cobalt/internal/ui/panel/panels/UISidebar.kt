@@ -27,7 +27,7 @@ class UISidebar : UIPanel(
     NVGRenderer.createImage(
       "https://mc-heads.net/avatar/${MinecraftClient.getInstance().session.uuidOrNull}/100/face.png"
     )
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     NVGRenderer.createImage("/assets/cobalt/steve.png")
   }
 
@@ -39,24 +39,15 @@ class UISidebar : UIPanel(
 
   override fun render() {
     NVGRenderer.rect(x, y, width, height, Color(18, 18, 18).rgb, 10F)
-    NVGRenderer.text("cb", x + width / 2F - 15F, y + 30F, 25F, Color(230, 230, 230).rgb)
-
-    NVGRenderer.line(
-      x + (width / 2F) - 10F,
-      y + 85F,
-      x + (width / 2F) + 10F,
-      y + 85F,
-      1F,
-      Color(42, 42, 42).rgb
-    )
+    NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, Color(230, 230, 230).rgb)
 
     moduleButton
       .setSelected(true)
-      .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 115F)
+      .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 75F)
       .render()
 
     hudButton
-      .updateBounds(x + (width / 2F) - (hudButton.width / 2F), y + 155F)
+      .updateBounds(x + (width / 2F) - (hudButton.width / 2F), y + 115F)
       .render()
 
     NVGRenderer.image(

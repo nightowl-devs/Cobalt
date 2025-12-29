@@ -4,7 +4,7 @@ import net.minecraft.client.network.ClientPlayerEntity
 import org.cobalt.internal.rotation.EasingType
 import org.cobalt.internal.rotation.IRotationStrategy
 
-class EasingStrategy(
+class TimedEaseStrategy(
   private val yawEaseType: EasingType = EasingType.LINEAR,
   private val pitchEaseType: EasingType = EasingType.LINEAR,
   private val duration: Long = 500L

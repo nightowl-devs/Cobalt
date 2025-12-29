@@ -9,16 +9,15 @@ class UITopbar(
 ) : UIComponent(
   x = 0F,
   y = 0F,
-  width = 870F,
-  height = 60F,
+  width = 890F,
+  height = 70F,
 ) {
 
   private val searchBar = UISearchBar()
 
   override fun render() {
-    NVGRenderer.rect(x, y, width, height, Color(24, 24, 24).rgb, 10F)
-    NVGRenderer.hollowRect(x, y, width, height, 2F, Color(79, 140, 255, 100).rgb, 10F)
-    NVGRenderer.text(title, x + 20F, y + 20F, 20F, Color(230, 230, 230).rgb)
+    NVGRenderer.text(title, x + 40F, y + (height / 2) - 10F, 20F, Color(230, 230, 230).rgb)
+    NVGRenderer.line(x, y + height, x + width, y + height, 1F, Color(42, 42, 42).rgb)
 
     searchBar
       .updateBounds(x, y)
