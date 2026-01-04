@@ -11,7 +11,6 @@ import org.cobalt.api.addon.Addon
 import org.cobalt.api.addon.AddonMetadata
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.api.util.ui.helper.Image
-import org.cobalt.internal.test.TestAddon
 import org.spongepowered.asm.mixin.Mixins
 
 object AddonLoader {
@@ -20,19 +19,7 @@ object AddonLoader {
   private val addons = mutableListOf<Pair<AddonMetadata, Addon>>()
   private val gson = Gson()
 
-
   fun findAddons() {
-    //REMOVE TO REMOVE TEST ADDON!!!
-    val testAddon = TestAddon()
-    addons += AddonMetadata(
-      id = "test",
-      name = "Test",
-      version = "1.0.0",
-      entrypoints = listOf(),
-      mixins = listOf(),
-      icon = "https://i.imgur.com/UD3Lija.png"
-    ) to testAddon
-
     if (FabricLauncherBase.getLauncher().isDevelopment) {
       for (entry in FabricLoader.getInstance().getEntrypointContainers("cobalt", Addon::class.java)) {
         val modMeta = entry.provider.metadata

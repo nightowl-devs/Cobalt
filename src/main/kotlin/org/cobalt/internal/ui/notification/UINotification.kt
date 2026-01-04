@@ -39,6 +39,7 @@ internal class UINotification(
     slideInAnim.start()
   }
 
+  @Suppress("SameParameterValue")
   private fun wrapText(text: String, maxWidth: Float, fontSize: Float): List<String> {
     val lines = mutableListOf<String>()
     val words = text.split(" ")

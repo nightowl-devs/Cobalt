@@ -68,7 +68,7 @@ internal class UIUpdateButton : UIComponent(
 
     override fun mouseClicked(button: Int): Boolean {
         if (isHoveringOver(x, y, width, height) && button == 0) {
-            NotificationManager.addNotification("Update Started", "Downloading and installing update...", 3000)
+            NotificationManager.sendNotification("Update Started", "Downloading and installing update...", 3000)
         }
         return false
     }

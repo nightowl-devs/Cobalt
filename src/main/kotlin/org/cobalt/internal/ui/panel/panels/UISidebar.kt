@@ -53,6 +53,7 @@ internal class UISidebar : UIPanel(
     NVGRenderer.rect(x, y, width, height, Color(18, 18, 18).rgb, 10F)
 
     NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, Color(230, 230, 230).rgb)
+
     moduleButton
       .setSelected(true)
       .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 75F)
