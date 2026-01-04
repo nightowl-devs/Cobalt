@@ -28,9 +28,11 @@ internal class UINotification(
     wrapText(description, descriptionMaxWidth, 12F)
   }
 
+  private val titleDescriptionGap = 8F
+
   fun getNotificationHeight(): Float {
     val descriptionHeight = wrappedDescription.size * 16F
-    return padding + 22F + descriptionHeight + padding
+    return padding + 22F + titleDescriptionGap + descriptionHeight + padding
   }
 
   init {
@@ -115,7 +117,11 @@ internal class UINotification(
       Color(230, 230, 230).rgb
     )
 
-    var yOffset = padding + 22F
+    val descriptionHeight = wrappedDescription.size * 16F
+    val totalTextHeight = 22F + titleDescriptionGap + descriptionHeight
+    val verticalCenter = (finalHeight - totalTextHeight) / 2F
+
+    var yOffset = verticalCenter + 22F + titleDescriptionGap
     for (line in wrappedDescription) {
       NVGRenderer.text(
         line,

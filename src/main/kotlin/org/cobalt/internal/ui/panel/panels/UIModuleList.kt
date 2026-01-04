@@ -12,7 +12,6 @@ import org.cobalt.api.module.setting.impl.RangeSetting
 import org.cobalt.api.module.setting.impl.SliderSetting
 import org.cobalt.api.module.setting.impl.TextSetting
 import org.cobalt.api.util.ui.NVGRenderer
-import org.cobalt.internal.loader.AddonLoader
 import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.components.UIBackButton
 import org.cobalt.internal.ui.components.UIModule

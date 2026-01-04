@@ -11,10 +11,12 @@ import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.helper.Config
 import org.cobalt.internal.ui.UIScreen
 import org.cobalt.internal.ui.animation.BounceAnimation
+import org.cobalt.internal.ui.components.UIUpdateBar
 import org.cobalt.internal.ui.components.tooltips.TooltipManager
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.panel.panels.UIAddonList
 import org.cobalt.internal.ui.panel.panels.UISidebar
+import org.cobalt.internal.updater.UpdateData
 
 internal object UIConfig : UIScreen() {
 
@@ -23,6 +25,7 @@ internal object UIConfig : UIScreen() {
 
   private val sidebar = UISidebar()
   private var body: UIPanel = UIAddonList()
+  private val updateBar = UIUpdateBar()
 
   init {
     EventBus.register(this)
@@ -53,6 +56,12 @@ internal object UIConfig : UIScreen() {
     val originX = width / 2f - 480f
     val originY = height / 2f - 300f
 
+    val centerAboveBodyAndSidebar = width / 2f - 250f
+    if (UpdateData.isUpdateAvailable) {
+      updateBar.updateBounds(centerAboveBodyAndSidebar , originY - 60f)
+      updateBar.render()
+    }
+
     sidebar
       .updateBounds(originX, originY)
       .render()
@@ -67,27 +76,32 @@ internal object UIConfig : UIScreen() {
   }
 
   override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+    if (UpdateData.isUpdateAvailable && updateBar.mouseClicked(click.button())) return true
     return body.mouseClicked(click.button()) ||
       sidebar.mouseClicked(click.button()) ||
       super.mouseClicked(click, doubled)
   }
 
   override fun mouseReleased(click: Click): Boolean {
+    if (UpdateData.isUpdateAvailable && updateBar.mouseReleased(click.button())) return true
     return body.mouseReleased(click.button()) ||
       super.mouseReleased(click)
   }
 
   override fun mouseDragged(click: Click, offsetX: Double, offsetY: Double): Boolean {
+    if (UpdateData.isUpdateAvailable && updateBar.mouseDragged(click.button(), offsetX, offsetY)) return true
     return body.mouseDragged(click.button(), offsetX, offsetY) ||
       super.mouseDragged(click, offsetX, offsetY)
   }
 
   override fun charTyped(input: CharInput): Boolean {
+    if (UpdateData.isUpdateAvailable && updateBar.charTyped(input)) return true
     return body.charTyped(input) ||
       super.charTyped(input)
   }
 
   override fun keyPressed(input: KeyInput): Boolean {
+    if (UpdateData.isUpdateAvailable && updateBar.keyPressed(input)) return true
     return body.keyPressed(input) ||
       super.keyPressed(input)
   }

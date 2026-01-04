@@ -2,8 +2,7 @@ package org.cobalt.internal.ui.panel.panels
 
 import java.awt.Color
 import kotlin.random.Random
-import kotlin.random.nextInt
-import net.minecraft.client.MinecraftClient
+import org.cobalt.Cobalt.mc
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.components.tooltips.TooltipPosition
@@ -29,10 +28,10 @@ internal class UISidebar : UIPanel(
 //  }
 
   private val steveIcon = NVGRenderer.createImage("/assets/cobalt/steve.png")
-  private val userIcon = MinecraftClient.getInstance().session.uuidOrNull?.let {
+  private val userIcon = mc.session.uuidOrNull?.let {
     try {
       NVGRenderer.createImage(
-        "https://mc-heads.net/avatar/${MinecraftClient.getInstance().session.uuidOrNull}/100/face.png"
+        "https://mc-heads.net/avatar/${mc.session.uuidOrNull}/100/face.png"
       )
     } catch (_: Exception) {
       steveIcon
@@ -40,7 +39,7 @@ internal class UISidebar : UIPanel(
   } ?: steveIcon
 
   private val userIconTooltip = UITooltip(
-    content = { UITextTooltip("Hello, ${MinecraftClient.getInstance().session.username}!") },
+    content = { UITextTooltip("Hello, ${mc.session.username}!") },
     position = TooltipPosition.BELOW
   )
 
@@ -52,9 +51,8 @@ internal class UISidebar : UIPanel(
 
   override fun render() {
     NVGRenderer.rect(x, y, width, height, Color(18, 18, 18).rgb, 10F)
-    val hue = Random.nextDouble(0.0, 1.0).toFloat()
-    val neon = Color.getHSBColor(hue, 0.85f + Random.nextFloat() * 0.15f, 0.9f + Random.nextFloat() * 0.1f)
-    NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, neon.rgb)
+
+    NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, Color(230, 230, 230).rgb)
     moduleButton
       .setSelected(true)
       .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 75F)

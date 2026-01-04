@@ -1,7 +1,6 @@
 package org.cobalt.internal.ui.components
 
 import java.awt.Color
-import kotlinx.coroutines.selects.select
 import org.cobalt.api.module.Module
 import org.cobalt.api.module.setting.Setting
 import org.cobalt.api.util.ui.NVGRenderer

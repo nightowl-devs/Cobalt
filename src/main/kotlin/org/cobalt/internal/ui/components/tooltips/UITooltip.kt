@@ -21,7 +21,7 @@ internal class UITooltip(
   private var targetWidth = 0F
   private var targetHeight = 0F
   private var isHovering = false
-  private val alphaAnim = if (animation is ColorAnimation) animation else ColorAnimation(150L)
+  private val alphaAnim = ColorAnimation(150L)
   private var wasHovering = false
 
   init {
