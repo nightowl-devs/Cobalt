@@ -17,18 +17,12 @@ import org.cobalt.internal.helper.Config
 import org.cobalt.internal.loader.AddonLoader
 import org.cobalt.internal.rotation.RotationExec
 
+@Suppress("UNUSED")
 object Cobalt : ClientModInitializer {
-
-  const val MOD_NAME = "Cobalt"
-  const val VERSION = "1.0.0"
-
-  val MC_VERSION: String
-    get() = mc.gameVersion
 
   val mc: MinecraftClient
     get() = MinecraftClient.getInstance()
 
-  @Suppress("UNUSED_EXPRESSION")
   override fun onInitializeClient() {
     AddonLoader.getAddons().map { it.second }.forEach {
       it.onLoad()
@@ -73,4 +67,5 @@ object Cobalt : ClientModInitializer {
     mc.player?.let { rotationExec.onRotate(it) }
     mc.player?.let { pathExec?.onWorldRenderLast(event.context, it) }
   }
+
 }
