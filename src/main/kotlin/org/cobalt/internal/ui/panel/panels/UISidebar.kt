@@ -22,19 +22,11 @@ internal class UISidebar : UIPanel(
     UIConfig.swapBodyPanel(UIAddonList())
   }
 
-//  private val hudButton = UIButton("/assets/cobalt/icons/interface.svg") {
-//    println("Opening HUD Editor")
-//  }
-
   private val steveIcon = NVGRenderer.createImage("/assets/cobalt/steve.png")
   private val userIcon = MinecraftClient.getInstance().session.uuidOrNull?.let {
     try {
-      NVGRenderer.createImage(
-        "https://mc-heads.net/avatar/${MinecraftClient.getInstance().session.uuidOrNull}/100/face.png"
-      )
-    } catch (_: Exception) {
-      steveIcon
-    }
+      NVGRenderer.createImage("https://mc-heads.net/avatar/${MinecraftClient.getInstance().session.uuidOrNull}/100/face.png")
+    } catch (_: Exception) { steveIcon }
   } ?: steveIcon
 
   private val userIconTooltip = UITooltip(
@@ -56,10 +48,6 @@ internal class UISidebar : UIPanel(
       .setSelected(true)
       .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 75F)
       .render()
-
-//    hudButton
-//      .updateBounds(x + (width / 2F) - (hudButton.width / 2F), y + 115F)
-//      .render()
 
     val userIconX = x + (width / 2F) - 16F
     val userIconY = y + height - 32F - 20F
