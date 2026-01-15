@@ -11,8 +11,9 @@ object EventBus {
 
   private val listeners = ConcurrentHashMap<Class<*>, MutableList<ListenerData>>()
   private val registered = mutableSetOf<Any>()
-  private val dynamicRunnables = ConcurrentHashMap<Class<out Event>, MutableList<Runnable>>()
+  private val dynamicRunnable = ConcurrentHashMap<Class<out Event>, MutableList<Runnable>>()
 
+  @JvmStatic
   fun register(obj: Any) {
     if (obj in registered) return
 
@@ -37,12 +38,14 @@ object EventBus {
   }
 
   @Suppress("UNUSED")
+  @JvmStatic
   fun unregister(obj: Any) {
     if (obj !in registered) return
     listeners.values.forEach { it.removeIf { data -> data.instance === obj } }
     registered.remove(obj)
   }
 
+  @JvmStatic
   fun post(event: Event): Event {
     val eventClass = event::class.java
     val applicable = listeners.flatMap { (type, methods) ->
@@ -69,6 +72,7 @@ object EventBus {
    *
    * @author oblongboot
    */
+  @JvmStatic
   fun discoverAndRegister(packageStr: String, excludeFiles: Set<Class<*>> = emptySet()) {
     val reflections = Reflections(
       ConfigurationBuilder()
@@ -112,12 +116,14 @@ object EventBus {
    *
    * @author oblongboot
    */
+  @JvmStatic
   fun registerEvent(eventClass: Class<out Event>, runnable: Runnable) {
-    dynamicRunnables.computeIfAbsent(eventClass) { mutableListOf() }.add(runnable)
+    dynamicRunnable.computeIfAbsent(eventClass) { mutableListOf() }.add(runnable)
   }
 
+  @JvmStatic
   fun handleDynamic(event: Event) {
-    dynamicRunnables
+    dynamicRunnable
       .filter { (clazz, _) -> clazz.isAssignableFrom(event::class.java) }
       .forEach { (_, listeners) -> listeners.forEach { it.run() } }
   }

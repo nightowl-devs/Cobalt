@@ -2,13 +2,17 @@ package org.cobalt.internal.helper
 
 import com.google.gson.*
 import java.io.File
+import net.minecraft.client.MinecraftClient
 import org.cobalt.Cobalt
 import org.cobalt.internal.loader.AddonLoader
 
 internal object Config {
 
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
+
   private val gson = GsonBuilder().setPrettyPrinting().create()
-  private val modulesFile = File(Cobalt.mc.runDirectory, "config/cobalt/addons.json")
+  private val modulesFile = File(mc.runDirectory, "config/cobalt/addons.json")
 
   fun loadModulesConfig() {
     if (!modulesFile.exists()) {

@@ -4,6 +4,7 @@ object ModuleManager {
 
   private val moduleList = mutableListOf<Module>()
 
+  @JvmStatic
   fun getModules(): List<Module> {
     return moduleList
   }

@@ -1,14 +1,17 @@
 package org.cobalt.api.util
 
 import kotlin.math.roundToInt
+import net.minecraft.client.MinecraftClient
 import net.minecraft.text.MutableText
 import net.minecraft.text.Style
 import net.minecraft.text.Text
 import net.minecraft.text.TextColor
 import net.minecraft.util.Formatting
-import org.cobalt.Cobalt.mc
 
 object ChatUtils {
+
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
 
   /**
    * Function to display a message in Minecraft chat with the prefix "[Cobalt Debug]"

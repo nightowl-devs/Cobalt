@@ -14,6 +14,7 @@ import org.joml.Vector3f
 
 object Render3D {
 
+  @JvmStatic
   fun drawBox(context: WorldRenderContext, box: Box, color: Color, esp: Boolean = false) {
     if (!FrustumUtils.isVisible(context.frustum, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)) {
       return
@@ -53,6 +54,7 @@ object Render3D {
     bufferSource.draw(lineLayer)
   }
 
+  @JvmStatic
   fun drawLine(
     context: WorldRenderContext,
     start: Vec3d,

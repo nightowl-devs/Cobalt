@@ -20,8 +20,8 @@ import org.cobalt.internal.rotation.RotationExec
 @Suppress("UNUSED")
 object Cobalt : ClientModInitializer {
 
-  val mc: MinecraftClient
-    get() = MinecraftClient.getInstance()
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
 
   override fun onInitializeClient() {
     AddonLoader.getAddons().map { it.second }.forEach {

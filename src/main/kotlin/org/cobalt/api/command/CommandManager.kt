@@ -24,11 +24,12 @@ object CommandManager {
 
   private val commands = mutableListOf<Command>()
 
+  @JvmStatic
   fun register(command: Command) {
     commands.add(command)
   }
 
-  fun dispatchAll() {
+  internal fun dispatchAll() {
     ClientCommandRegistrationCallback.EVENT.register(CommandManager::dispatchAll)
   }
 

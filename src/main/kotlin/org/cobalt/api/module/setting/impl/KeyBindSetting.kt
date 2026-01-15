@@ -2,8 +2,8 @@ package org.cobalt.api.module.setting.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.util.InputUtil
-import org.cobalt.Cobalt.mc
 import org.cobalt.api.module.setting.Setting
 import org.lwjgl.glfw.GLFW
 
@@ -12,6 +12,9 @@ class KeyBindSetting(
   description: String,
   defaultValue: Int,
 ) : Setting<Int>(name, description, defaultValue) {
+
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
 
   val keyName: String
     get() = when (value) {

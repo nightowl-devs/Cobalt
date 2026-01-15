@@ -14,6 +14,7 @@ object MovementManager {
    *
    * @param state The new lock state. Defaults to `true`.
    */
+  @JvmStatic
   fun setLookLock(state: Boolean = true) {
     isLookLocked = state
   }

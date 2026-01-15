@@ -22,6 +22,7 @@ object TickScheduler {
    * @param delayTicks How many ticks to wait before executing the task.
    * @param action The runnable code that should execute once the delay has passed.
    */
+  @JvmStatic
   fun schedule(delayTicks: Long, action: Runnable) {
     taskQueue.offer(ScheduledTask(currentTick + delayTicks, action))
   }

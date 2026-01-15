@@ -4,6 +4,7 @@ import com.google.gson.JsonElement
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import net.minecraft.client.MinecraftClient
 import org.cobalt.api.module.Module
 
 abstract class Setting<T>(

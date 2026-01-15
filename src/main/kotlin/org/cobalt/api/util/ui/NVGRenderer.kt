@@ -6,9 +6,9 @@ import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gl.GlBackend
 import net.minecraft.client.texture.GlTexture
-import org.cobalt.Cobalt.mc
 import org.cobalt.api.util.ui.NVGRenderer.beginFrame
 import org.cobalt.api.util.ui.NVGRenderer.endFrame
 import org.cobalt.api.util.ui.NVGRenderer.image
@@ -44,6 +44,9 @@ import org.lwjgl.system.MemoryUtil.memFree
 @Suppress("unused")
 object NVGRenderer {
 
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
+
   private val nvgPaint = NVGPaint.malloc()
   private val nvgColor = NVGColor.malloc()
   private val nvgColor2: NVGColor = NVGColor.malloc()
@@ -69,6 +72,7 @@ object NVGRenderer {
    * @param height The height of the frame in pixels
    * @throws IllegalStateException if called while already drawing
    */
+  @JvmStatic
   fun beginFrame(width: Float, height: Float) {
     if (drawing) throw IllegalStateException("[NVGRenderer] Already drawing, but called beginFrame")
 
@@ -92,6 +96,7 @@ object NVGRenderer {
    *
    * @throws IllegalStateException if called when not drawing
    */
+  @JvmStatic
   fun endFrame() {
     if (!drawing) throw IllegalStateException("[NVGRenderer] Not drawing, but called endFrame")
     nvgEndFrame(vg)
@@ -111,10 +116,10 @@ object NVGRenderer {
   }
 
   /** Saves the current transform state. Use with [pop] to restore it later. */
-  fun push() = nvgSave(vg)
+  @JvmStatic fun push() = nvgSave(vg)
 
   /** Restores the transform state saved by the last [push] call. */
-  fun pop() = nvgRestore(vg)
+  @JvmStatic fun pop() = nvgRestore(vg)
 
   /**
    * Scales subsequent drawing operations.
@@ -122,7 +127,7 @@ object NVGRenderer {
    * @param x Scale factor on the x-axis
    * @param y Scale factor on the y-axis
    */
-  fun scale(x: Float, y: Float) = nvgScale(vg, x, y)
+  @JvmStatic fun scale(x: Float, y: Float) = nvgScale(vg, x, y)
 
   /**
    * Translates (moves) subsequent drawing operations.
@@ -130,21 +135,21 @@ object NVGRenderer {
    * @param x Distance to move on the x-axis
    * @param y Distance to move on the y-axis
    */
-  fun translate(x: Float, y: Float) = nvgTranslate(vg, x, y)
+  @JvmStatic fun translate(x: Float, y: Float) = nvgTranslate(vg, x, y)
 
   /**
    * Rotates subsequent drawing operations.
    *
    * @param amount Rotation amount in radians
    */
-  fun rotate(amount: Float) = nvgRotate(vg, amount)
+  @JvmStatic fun rotate(amount: Float) = nvgRotate(vg, amount)
 
   /**
    * Sets the global alpha (transparency) for subsequent drawing operations.
    *
    * @param amount Alpha value between 0 (fully transparent) and 1 (fully opaque)
    */
-  fun globalAlpha(amount: Float) = nvgGlobalAlpha(vg, amount.coerceIn(0f, 1f))
+  @JvmStatic fun globalAlpha(amount: Float) = nvgGlobalAlpha(vg, amount.coerceIn(0f, 1f))
 
   /**
    * Pushes a scissor region to clip drawing. Only content inside this region will be visible.
@@ -155,6 +160,7 @@ object NVGRenderer {
    * @param w Width of the scissor region
    * @param h Height of the scissor region
    */
+  @JvmStatic
   fun pushScissor(x: Float, y: Float, w: Float, h: Float) {
     scissor = Scissor(scissor, x, y, w + x, h + y)
     scissor?.applyScissor()
@@ -163,6 +169,7 @@ object NVGRenderer {
   /**
    * Removes the most recently pushed scissor region.
    */
+  @JvmStatic
   fun popScissor() {
     nvgResetScissor(vg)
     scissor = scissor?.previous
@@ -179,6 +186,7 @@ object NVGRenderer {
    * @param thickness Line thickness in pixels
    * @param color Line color in ARGB format
    */
+  @JvmStatic
   fun line(x1: Float, y1: Float, x2: Float, y2: Float, thickness: Float, color: Int) {
     nvgBeginPath(vg)
     nvgMoveTo(vg, x1, y1)
@@ -200,6 +208,7 @@ object NVGRenderer {
    * @param radius Corner radius for the rounded side
    * @param roundTop If true, rounds the top corners; if false, rounds the bottom corners
    */
+  @JvmStatic
   fun drawHalfRoundedRect(x: Float, y: Float, w: Float, h: Float, color: Int, radius: Float, roundTop: Boolean) {
     nvgBeginPath(vg)
 
@@ -237,6 +246,7 @@ object NVGRenderer {
    * @param color Fill color in ARGB format
    * @param radius Corner radius
    */
+  @JvmStatic
   fun rect(x: Float, y: Float, w: Float, h: Float, color: Int, radius: Float) {
     nvgBeginPath(vg)
     nvgRoundedRect(vg, x, y, w, h + .5f, radius)
@@ -254,6 +264,7 @@ object NVGRenderer {
    * @param h Height
    * @param color Fill color in ARGB format
    */
+  @JvmStatic
   fun rect(x: Float, y: Float, w: Float, h: Float, color: Int) {
     nvgBeginPath(vg)
     nvgRect(vg, x, y, w, h + .5f)
@@ -273,6 +284,7 @@ object NVGRenderer {
    * @param color Border color in ARGB format
    * @param radius Corner radius
    */
+  @JvmStatic
   fun hollowRect(x: Float, y: Float, w: Float, h: Float, thickness: Float, color: Int, radius: Float) {
     nvgBeginPath(vg)
     nvgRoundedRect(vg, x, y, w, h, radius)
@@ -296,6 +308,7 @@ object NVGRenderer {
    * @param gradient Gradient direction
    * @param radius Corner radius
    */
+  @JvmStatic
   fun hollowGradientRect(
     x: Float,
     y: Float,
@@ -327,6 +340,7 @@ object NVGRenderer {
    * @param gradient Gradient direction
    * @param radius Corner radius
    */
+  @JvmStatic
   fun gradientRect(
     x: Float,
     y: Float,
@@ -352,6 +366,7 @@ object NVGRenderer {
    * @param radius Circle radius
    * @param color Fill color in ARGB format
    */
+  @JvmStatic
   fun circle(x: Float, y: Float, radius: Float, color: Int) {
     nvgBeginPath(vg)
     nvgCircle(vg, x, y, radius)
@@ -370,6 +385,7 @@ object NVGRenderer {
    * @param color Text color in ARGB format
    * @param font The font to use (defaults to Inter)
    */
+  @JvmStatic
   fun text(text: String, x: Float, y: Float, size: Float, color: Int, font: Font = interFont) {
     nvgFontSize(vg, size)
     nvgFontFaceId(vg, getFontID(font))
@@ -388,6 +404,7 @@ object NVGRenderer {
    * @param color Text color in ARGB format
    * @param font The font to use (defaults to Inter)
    */
+  @JvmStatic
   fun textShadow(text: String, x: Float, y: Float, size: Float, color: Int, font: Font = interFont) {
     nvgFontFaceId(vg, getFontID(font))
     nvgFontSize(vg, size)
@@ -408,6 +425,7 @@ object NVGRenderer {
    * @param font The font to use (defaults to Inter)
    * @return The width in pixels
    */
+  @JvmStatic
   fun textWidth(text: String, size: Float, font: Font = interFont): Float {
     nvgFontSize(vg, size)
     nvgFontFaceId(vg, getFontID(font))
@@ -426,6 +444,7 @@ object NVGRenderer {
    * @param font The font to use
    * @param lineHeight Line height multiplier (1.0 = normal spacing)
    */
+  @JvmStatic
   fun drawWrappedString(
     text: String,
     x: Float,
@@ -454,6 +473,7 @@ object NVGRenderer {
    * @param lineHeight Line height multiplier
    * @return Array containing [minX, minY, maxX, maxY]
    */
+  @JvmStatic
   fun wrappedTextBounds(
     text: String,
     w: Float,
@@ -477,6 +497,7 @@ object NVGRenderer {
    * @param textureHeight Height of the texture
    * @return NanoVG image handle
    */
+  @JvmStatic
   fun createNVGImage(textureId: Int, textureWidth: Int, textureHeight: Int): Int =
     nvglCreateImageFromHandle(
       vg,
@@ -497,6 +518,7 @@ object NVGRenderer {
    * @param radius Corner radius for rounded image (0 = sharp corners)
    * @param colorMask Color tint/mask to apply (0 = no tint)
    */
+  @JvmStatic
   fun image(image: Image, x: Float, y: Float, w: Float, h: Float, radius: Float = 0F, colorMask: Int = 0) {
     nvgImagePattern(vg, x, y, w, h, 0f, getImage(image), 1f, nvgPaint)
 
@@ -528,6 +550,7 @@ object NVGRenderer {
    * @param resourcePath Path to the image resource
    * @return The loaded image
    */
+  @JvmStatic
   fun createImage(resourcePath: String): Image {
     val image = images.keys.find { it.identifier == resourcePath } ?: Image(resourcePath)
     if (image.isSVG) images.getOrPut(image) { NVGImage(0, loadSVG(image)) }.count++
@@ -541,6 +564,7 @@ object NVGRenderer {
    *
    * @param image The image to delete
    */
+  @JvmStatic
   fun deleteImage(image: Image) {
     val nvgImage = images[image] ?: return
     nvgImage.count--

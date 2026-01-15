@@ -3,7 +3,6 @@ package org.cobalt.internal.ui.screen
 import net.minecraft.client.gui.Click
 import net.minecraft.client.input.CharInput
 import net.minecraft.client.input.KeyInput
-import org.cobalt.Cobalt.mc
 import org.cobalt.api.event.EventBus
 import org.cobalt.api.event.annotation.SubscribeEvent
 import org.cobalt.api.event.impl.render.NvgEvent

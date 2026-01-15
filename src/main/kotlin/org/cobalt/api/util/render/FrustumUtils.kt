@@ -7,10 +7,12 @@ import org.joml.FrustumIntersection
 
 object FrustumUtils {
 
+  @JvmStatic
   fun isVisible(frustum: Frustum, box: Box): Boolean {
     return isVisible(frustum, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
   }
 
+  @JvmStatic
   fun isVisible(
     frustum: Frustum,
     minX: Double,

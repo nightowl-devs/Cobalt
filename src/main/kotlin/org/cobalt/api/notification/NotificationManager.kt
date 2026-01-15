@@ -1,12 +1,15 @@
 package org.cobalt.api.notification
 
-import org.cobalt.Cobalt.mc
+import net.minecraft.client.MinecraftClient
 import org.cobalt.api.event.annotation.SubscribeEvent
 import org.cobalt.api.event.impl.render.NvgEvent
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.notification.UINotification
 
 object NotificationManager : NotificationAPI {
+
+  private val mc: MinecraftClient =
+    MinecraftClient.getInstance()
 
   private val notifications = mutableListOf<UINotification>()
   private const val MAX_NOTIFICATIONS = 5
@@ -59,4 +62,5 @@ object NotificationManager : NotificationAPI {
   override fun clear() {
     notifications.forEach { it.startClosing() }
   }
+
 }
