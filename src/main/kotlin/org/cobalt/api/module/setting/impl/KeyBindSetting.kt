@@ -13,9 +13,6 @@ class KeyBindSetting(
   defaultValue: Int,
 ) : Setting<Int>(name, description, defaultValue) {
 
-  private val mc: MinecraftClient =
-    MinecraftClient.getInstance()
-
   val keyName: String
     get() = when (value) {
       -1 -> "None"
@@ -33,17 +30,19 @@ class KeyBindSetting(
       else -> GLFW.glfwGetKeyName(value, 0)?.uppercase() ?: "Unknown"
     }
 
-  fun isPressed(): Boolean {
-    if (value == -1) return false
-    return InputUtil.isKeyPressed(mc.window, value)
-  }
-
   override fun read(element: JsonElement) {
     this.value = element.asInt
   }
 
   override fun write(): JsonElement {
     return JsonPrimitive(value)
+  }
+
+  companion object {
+    fun Int.isPressed(): Boolean {
+      if (this == -1) return false
+      return InputUtil.isKeyPressed(MinecraftClient.getInstance().window, this)
+    }
   }
 
 }
