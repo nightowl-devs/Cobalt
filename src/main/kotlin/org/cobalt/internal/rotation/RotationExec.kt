@@ -35,7 +35,7 @@ object RotationExec : IRotationExec {
     MovementManager.setLookLock(false)
   }
 
-  fun isRotation(): Boolean {
+  fun isRotating(): Boolean {
     return isRotating
   }
 
