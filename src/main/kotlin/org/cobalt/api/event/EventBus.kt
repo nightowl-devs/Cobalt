@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.Method
 import java.net.URLDecoder
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import java.util.zip.ZipFile
@@ -14,7 +15,7 @@ import org.cobalt.api.event.annotation.SubscribeEvent
 
 object EventBus {
 
-  private val listeners = ConcurrentHashMap<Class<*>, MutableList<ListenerData>>()
+  private val listeners = ConcurrentHashMap<Class<*>, List<ListenerData>>()
 
   private val registered = ConcurrentHashMap.newKeySet<Any>()
   private val dynamicRunnable = ConcurrentHashMap<Class<out Event>, MutableList<Runnable>>()
@@ -36,11 +37,12 @@ object EventBus {
 
         val consumer = createInvoker(obj, method)
 
-        listeners
-          .computeIfAbsent(eventType) { ArrayList() }
-          .add(ListenerData(obj, consumer, priority, method))
-
-        listeners[eventType]?.sort()
+        listeners.compute(eventType) { _, list ->
+          val newList = ArrayList(list ?: emptyList())
+          newList.add(ListenerData(obj, consumer, priority))
+          newList.sort()
+          Collections.unmodifiableList(newList)
+        }
       }
     }
   }
@@ -50,7 +52,16 @@ object EventBus {
   fun unregister(obj: Any) {
     if (!registered.remove(obj)) return
 
-    listeners.values.forEach { list -> list.removeIf { it.instance === obj } }
+    listeners.keys.forEach { key ->
+      listeners.compute(key) { _, list ->
+        val newList = ArrayList(list ?: return@compute null)
+        if (newList.removeIf { it.instance === obj }) {
+          if (newList.isEmpty()) null else Collections.unmodifiableList(newList)
+        } else {
+          list
+        }
+      }
+    }
   }
 
   @JvmStatic
@@ -73,7 +84,8 @@ object EventBus {
   private fun createInvoker(instance: Any, method: Method): Consumer<Event> {
     return try {
       method.isAccessible = true
-      val lookup = MethodHandles.lookup()
+
+      val lookup = MethodHandles.privateLookupIn(method.declaringClass, MethodHandles.lookup())
       val methodHandle = lookup.unreflect(method)
       val boundHandle = methodHandle.bindTo(instance)
 
@@ -182,7 +194,6 @@ object EventBus {
     val instance: Any,
     val invoker: Consumer<Event>,
     val priority: Int,
-    val method: Method,
   ) : Comparable<ListenerData> {
     override fun compareTo(other: ListenerData): Int {
       return other.priority.compareTo(this.priority)
