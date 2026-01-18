@@ -1,6 +1,9 @@
 package org.cobalt.internal.helper
 
-import com.google.gson.*
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import java.io.File
 import net.minecraft.client.MinecraftClient
 import org.cobalt.internal.loader.AddonLoader
@@ -46,27 +49,29 @@ internal object Config {
   }
 
   fun saveModulesConfig() {
-    val jsonArray = JsonArray().apply {
-      AddonLoader.getAddons().forEach { (metadata, addon) ->
-        add(JsonObject().apply {
-          add("addon", JsonPrimitive(metadata.id))
-          add("modules", JsonArray().apply {
-            addon.getModules().forEach { module ->
-              add(JsonObject().apply {
-                add("name", JsonPrimitive(module.name))
-                add("settings", JsonObject().apply {
-                  module.getSettings().forEach { setting ->
-                    add(setting.name, setting.write())
-                  }
-                })
-              })
-            }
-          })
-        })
+    val jsonArray = JsonArray()
+
+    AddonLoader.getAddons().forEach { (metadata, addon) ->
+      val addonObject = JsonObject()
+      addonObject.addProperty("addon", metadata.id)
+
+      val modulesArray = JsonArray()
+      addon.getModules().forEach { module ->
+        val moduleObject = JsonObject()
+        moduleObject.addProperty("name", module.name)
+
+        val settingsObject = JsonObject()
+        module.getSettings().forEach { setting ->
+          settingsObject.add(setting.name, setting.write())
+        }
+        moduleObject.add("settings", settingsObject)
+        modulesArray.add(moduleObject)
       }
+
+      addonObject.add("modules", modulesArray)
+      jsonArray.add(addonObject)
     }
 
     modulesFile.bufferedWriter().use { it.write(gson.toJson(jsonArray)) }
   }
-
 }
