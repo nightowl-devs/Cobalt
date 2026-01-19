@@ -68,13 +68,7 @@ object EventBus {
   fun post(event: Event): Event {
     val eventClass = event::class.java
 
-    listeners[eventClass]?.forEach { data ->
-      try {
-        data.invoker.accept(event)
-      } catch (e: Exception) {
-        e.printStackTrace()
-      }
-    }
+    listeners[eventClass]?.forEach { data -> data.invoker.accept(event) }
 
     handleDynamic(event)
     return event
