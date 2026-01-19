@@ -20,6 +20,8 @@ object ChatUtils {
    */
   @JvmStatic
   fun sendDebug(message: String) {
+    if (mc.player == null || mc.level == null) return
+
     mc.gui.chat.addMessage(
       Component.empty().append(debugPrefix)
         .append(Component.literal("${ChatFormatting.RESET}$message"))
@@ -33,6 +35,8 @@ object ChatUtils {
    */
   @JvmStatic
   fun sendMessage(message: String) {
+    if (mc.player == null || mc.level == null) return
+
     mc.gui.chat.addMessage(
       Component.empty().append(prefix)
         .append(Component.literal("${ChatFormatting.RESET}$message"))
