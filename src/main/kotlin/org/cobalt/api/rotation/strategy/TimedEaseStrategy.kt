@@ -10,7 +10,7 @@ import org.cobalt.api.util.helper.Rotation
 class TimedEaseStrategy(
   private val yawEasing: EasingType,
   private val pitchEasing: EasingType,
-  private val duration: Long
+  private val duration: Long,
 ) : IRotationStrategy {
 
   private var startYaw: Float = 0.0F

@@ -14,7 +14,7 @@ class KeyBind(
     val mc = MinecraftClient.getInstance()
 
     val isPressed = mc.currentScreen == null
-        && InputUtil.isKeyPressed(mc.window, keyCode)
+      && InputUtil.isKeyPressed(mc.window, keyCode)
 
     return (isPressed && !wasPressed).also {
       wasPressed = isPressed

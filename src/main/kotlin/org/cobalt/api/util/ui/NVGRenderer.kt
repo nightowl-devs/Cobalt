@@ -116,10 +116,12 @@ object NVGRenderer {
   }
 
   /** Saves the current transform state. Use with [pop] to restore it later. */
-  @JvmStatic fun push() = nvgSave(vg)
+  @JvmStatic
+  fun push() = nvgSave(vg)
 
   /** Restores the transform state saved by the last [push] call. */
-  @JvmStatic fun pop() = nvgRestore(vg)
+  @JvmStatic
+  fun pop() = nvgRestore(vg)
 
   /**
    * Scales subsequent drawing operations.
@@ -127,7 +129,8 @@ object NVGRenderer {
    * @param x Scale factor on the x-axis
    * @param y Scale factor on the y-axis
    */
-  @JvmStatic fun scale(x: Float, y: Float) = nvgScale(vg, x, y)
+  @JvmStatic
+  fun scale(x: Float, y: Float) = nvgScale(vg, x, y)
 
   /**
    * Translates (moves) subsequent drawing operations.
@@ -135,21 +138,24 @@ object NVGRenderer {
    * @param x Distance to move on the x-axis
    * @param y Distance to move on the y-axis
    */
-  @JvmStatic fun translate(x: Float, y: Float) = nvgTranslate(vg, x, y)
+  @JvmStatic
+  fun translate(x: Float, y: Float) = nvgTranslate(vg, x, y)
 
   /**
    * Rotates subsequent drawing operations.
    *
    * @param amount Rotation amount in radians
    */
-  @JvmStatic fun rotate(amount: Float) = nvgRotate(vg, amount)
+  @JvmStatic
+  fun rotate(amount: Float) = nvgRotate(vg, amount)
 
   /**
    * Sets the global alpha (transparency) for subsequent drawing operations.
    *
    * @param amount Alpha value between 0 (fully transparent) and 1 (fully opaque)
    */
-  @JvmStatic fun globalAlpha(amount: Float) = nvgGlobalAlpha(vg, amount.coerceIn(0f, 1f))
+  @JvmStatic
+  fun globalAlpha(amount: Float) = nvgGlobalAlpha(vg, amount.coerceIn(0f, 1f))
 
   /**
    * Pushes a scissor region to clip drawing. Only content inside this region will be visible.

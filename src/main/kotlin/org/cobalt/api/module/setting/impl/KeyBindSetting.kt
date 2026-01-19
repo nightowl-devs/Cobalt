@@ -2,8 +2,6 @@ package org.cobalt.api.module.setting.impl
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.util.InputUtil
 import org.cobalt.api.module.setting.Setting
 import org.cobalt.api.util.helper.KeyBind
 import org.lwjgl.glfw.GLFW

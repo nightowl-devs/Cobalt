@@ -18,7 +18,7 @@ object InventoryUtils {
   fun clickSlot(
     slot: Int,
     click: ClickType = ClickType.LEFT,
-    action: SlotActionType = SlotActionType.PICKUP
+    action: SlotActionType = SlotActionType.PICKUP,
   ) {
     val player = player ?: return
     val handler = player.currentScreenHandler
@@ -93,7 +93,7 @@ object InventoryUtils {
 
     return -1
   }
-  
+
   @JvmStatic
   fun findItemInInventoryWithLore(lore: String): Int {
     val player = player ?: return -1
