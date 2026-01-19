@@ -52,7 +52,7 @@ jobs:
           name: Artifacts
           path: dist
 
-      - name: decide release type + tag
+      - name: decide release type + tag (version-scoped beta counter)
         id: rel
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,27 +63,39 @@ jobs:
 
           version_tag="v${MOD_VERSION}"
 
-          # Get latest release tag (empty if none)
-          latest_tag="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+          # List releases and extract tag_name values
+          tags="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${REPO}/releases/latest" \
-            | jq -r '.tag_name // empty' || true)"
+            "https://api.github.com/repos/${REPO}/releases?per_page=100" \
+            | jq -r '.[].tag_name' || true)"
 
-          prerelease=false
-          tag="$version_tag"
-          name="$version_tag"
+          # If a full release with vX.Y.Z already exists -> create next beta for that version
+          if echo "$tags" | grep -qx "$version_tag"; then
+            # Count existing betas for this exact version: vX.Y.Z-beta.N
+            n="$(echo "$tags" \
+              | grep -E "^${version_tag}-beta\.[0-9]+$" \
+              | sed -E "s/^${version_tag}-beta\.//" \
+              | sort -n \
+              | tail -n 1 || true)"
 
-          # If latest release already matches this version, make a beta pre-release
-          if [ "$latest_tag" = "$version_tag" ]; then
+            if [ -z "${n:-}" ]; then
+              next=1
+            else
+              next=$((n + 1))
+            fi
+
+            tag="${version_tag}-beta.${next}"
+            name="${version_tag}-beta.${next}"
             prerelease=true
-            tag="${version_tag}-beta.${GITHUB_RUN_NUMBER}"
-            name="${version_tag} beta ${GITHUB_RUN_NUMBER}"
+          else
+            tag="$version_tag"
+            name="$version_tag"
+            prerelease=false
           fi
 
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
-
       - name: create GitHub release + upload jars
         uses: ncipollo/release-action@v1
         with:
