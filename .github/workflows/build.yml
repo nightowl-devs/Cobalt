@@ -1,8 +1,3 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
-
 name: build
 on: [pull_request, push]
 
@@ -12,19 +7,89 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
+
       - name: setup jdk
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'microsoft'
+
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
+
       - name: build
         run: ./gradlew build
+
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
           path: build/libs/
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: read modVersion from gradle.properties
+        id: props
+        uses: BrycensRanch/read-properties-action@v1
+        with:
+          file: gradle.properties
+          property: modVersion
+
+      - name: download build artifacts from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: Artifacts
+          path: dist
+
+      - name: decide release type + tag
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MOD_VERSION: ${{ steps.props.outputs.value }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          version_tag="v${MOD_VERSION}"
+
+          # Get latest release tag (empty if none)
+          latest_tag="$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/releases/latest" \
+            | jq -r '.tag_name // empty' || true)"
+
+          prerelease=false
+          tag="$version_tag"
+          name="$version_tag"
+
+          # If latest release already matches this version, make a beta pre-release
+          if [ "$latest_tag" = "$version_tag" ]; then
+            prerelease=true
+            tag="${version_tag}-beta.${GITHUB_RUN_NUMBER}"
+            name="${version_tag} beta ${GITHUB_RUN_NUMBER}"
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+      - name: create GitHub release + upload jars
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.rel.outputs.tag }}
+          name: ${{ steps.rel.outputs.name }}
+          prerelease: ${{ steps.rel.outputs.prerelease }}
+          artifacts: "dist/*"
+          allowUpdates: true
+          replacesArtifacts: true
