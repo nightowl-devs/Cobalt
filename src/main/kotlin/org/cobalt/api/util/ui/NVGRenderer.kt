@@ -1,16 +1,10 @@
 package org.cobalt.api.util.ui
 
-import com.mojang.blaze3d.opengl.GlDevice
-import com.mojang.blaze3d.opengl.GlStateManager
-import com.mojang.blaze3d.opengl.GlTexture
-import com.mojang.blaze3d.systems.RenderSystem
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 import net.minecraft.client.Minecraft
-import org.cobalt.api.util.ui.NVGRenderer.beginFrame
-import org.cobalt.api.util.ui.NVGRenderer.endFrame
 import org.cobalt.api.util.ui.NVGRenderer.image
 import org.cobalt.api.util.ui.NVGRenderer.pop
 import org.cobalt.api.util.ui.NVGRenderer.popScissor
@@ -24,22 +18,15 @@ import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoSVG.*
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3.*
-import org.lwjgl.opengl.GL30
 import org.lwjgl.stb.STBImage.stbi_load_from_memory
 import org.lwjgl.system.MemoryUtil.memAlloc
 import org.lwjgl.system.MemoryUtil.memFree
 
 /**
- * A renderer that uses NanoVG for 2D graphics rendering.
+ * Implementation from OdinFabric
+ * Original work: https://github.com/odtheking/OdinFabric
  *
- * This object wraps NanoVG functions to make it easier to draw shapes, text,
- * images, and gradients. All drawing must happen between [beginFrame]
- * and [endFrame] calls.
- *
- * Implementation from vexel by StellariumMC
- * Original work: https://github.com/StellariumMC/vexel
- *
- * @author StellariumMC Odin Contributors
+ * @author OdinFabric
  */
 @Suppress("unused")
 object NVGRenderer {
@@ -49,12 +36,14 @@ object NVGRenderer {
 
   private val nvgPaint = NVGPaint.malloc()
   private val nvgColor = NVGColor.malloc()
-  private val nvgColor2: NVGColor = NVGColor.malloc()
+  private val nvgColor2 = NVGColor.malloc()
+
   val interFont = Font("Inter", "/assets/cobalt/fonts/Inter.otf")
 
-  private val images = HashMap<Image, NVGImage>()
   private val fontMap = HashMap<Font, NVGFont>()
   private val fontBounds = FloatArray(4)
+
+  private val images = HashMap<Image, NVGImage>()
 
   private var scissor: Scissor? = null
   private var drawing: Boolean = false
@@ -65,6 +54,17 @@ object NVGRenderer {
     require(vg != -1L) { "Failed to initialize NanoVG" }
   }
 
+  fun devicePixelRatio(): Float {
+    return try {
+      val window = mc.window
+      val fbw = window.width
+      val ww = window.screenWidth
+      if (ww == 0) 1f else fbw.toFloat() / ww.toFloat()
+    } catch (_: Throwable) {
+      1f
+    }
+  }
+
   /**
    * Starts a new drawing frame. Call this before any drawing operations.
    *
@@ -72,21 +72,12 @@ object NVGRenderer {
    * @param height The height of the frame in pixels
    * @throws IllegalStateException if called while already drawing
    */
-  @JvmStatic
   fun beginFrame(width: Float, height: Float) {
     if (drawing) throw IllegalStateException("[NVGRenderer] Already drawing, but called beginFrame")
 
-    val framebuffer = mc.mainRenderTarget
-    val glFramebuffer = (framebuffer.colorTexture as GlTexture).getFbo(
-      (RenderSystem.getDevice() as GlDevice).directStateAccess(),
-      null
-    )
+    val dpr = devicePixelRatio()
 
-    GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, glFramebuffer)
-    GlStateManager._viewport(0, 0, framebuffer.width, framebuffer.height)
-    GlStateManager._activeTexture(GL30.GL_TEXTURE0)
-
-    nvgBeginFrame(vg, width, height, 1f)
+    nvgBeginFrame(vg, width / dpr, height / dpr, dpr)
     nvgTextAlign(vg, NVG_ALIGN_LEFT or NVG_ALIGN_TOP)
     drawing = true
   }
@@ -96,22 +87,9 @@ object NVGRenderer {
    *
    * @throws IllegalStateException if called when not drawing
    */
-  @JvmStatic
   fun endFrame() {
     if (!drawing) throw IllegalStateException("[NVGRenderer] Not drawing, but called endFrame")
     nvgEndFrame(vg)
-    GlStateManager._disableCull()
-    GlStateManager._disableDepthTest()
-    GlStateManager._enableBlend()
-    GlStateManager._blendFuncSeparate(770, 771, 1, 0)
-    GlStateManager._glUseProgram(0)
-
-    if (TextureTracker.prevActiveTexture != -1) {
-      GlStateManager._activeTexture(TextureTracker.prevActiveTexture)
-      if (TextureTracker.prevBoundTexture != -1) GlStateManager._bindTexture(TextureTracker.prevBoundTexture)
-    }
-
-    GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0)
     drawing = false
   }
 

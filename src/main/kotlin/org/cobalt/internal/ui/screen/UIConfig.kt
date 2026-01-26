@@ -4,8 +4,6 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import org.cobalt.api.event.EventBus
-import org.cobalt.api.event.annotation.SubscribeEvent
-import org.cobalt.api.event.impl.render.NvgEvent
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.helper.Config
 import org.cobalt.internal.ui.UIScreen
@@ -27,17 +25,10 @@ internal object UIConfig : UIScreen() {
     EventBus.register(this)
   }
 
-  @Suppress("unused")
-  @SubscribeEvent
-  fun onRender(event: NvgEvent) {
-    if (mc.screen != this)
-      return
-
+  override fun renderNVG() {
     val window = mc.window
     val width = window.screenWidth.toFloat()
     val height = window.screenHeight.toFloat()
-
-    NVGRenderer.beginFrame(width, height)
 
     if (openAnim.isAnimating()) {
       val scale = openAnim.get(0f, 1f)
@@ -61,7 +52,6 @@ internal object UIConfig : UIScreen() {
       .render()
 
     TooltipManager.renderAll()
-    NVGRenderer.endFrame()
   }
 
   override fun mouseClicked(click: MouseButtonEvent, doubled: Boolean): Boolean {

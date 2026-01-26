@@ -1,12 +1,14 @@
 package org.cobalt
 
 import net.fabricmc.api.ClientModInitializer
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
 import org.cobalt.api.command.CommandManager
 import org.cobalt.api.event.EventBus
 import org.cobalt.api.module.ModuleManager
 import org.cobalt.api.notification.NotificationManager
 import org.cobalt.api.rotation.RotationExecutor
 import org.cobalt.api.util.TickScheduler
+import org.cobalt.api.util.ui.NVGSpecialRenderer
 import org.cobalt.internal.command.MainCommand
 import org.cobalt.internal.helper.Config
 import org.cobalt.internal.loader.AddonLoader
@@ -22,6 +24,10 @@ object Cobalt : ClientModInitializer {
 
     CommandManager.register(MainCommand)
     CommandManager.dispatchAll()
+
+    SpecialGuiElementRegistry.register { context ->
+      NVGSpecialRenderer(context.vertexConsumers())
+    }
 
     listOf(
       TickScheduler, MainCommand, NotificationManager,

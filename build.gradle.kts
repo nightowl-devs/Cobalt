@@ -41,7 +41,8 @@ dependencies {
   modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
   modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
 
-  modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+  modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
+  runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
 
   modImplementation("org.lwjgl:lwjgl-nanovg:${lwjglVersion}")
   include("org.lwjgl:lwjgl-nanovg:${lwjglVersion}")
