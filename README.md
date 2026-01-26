@@ -18,8 +18,7 @@
 > [!NOTE]
 > This project was made possible thanks to:
 > - [Nebula Client](https://nebulaclient.net) (UI Design)
-> - [Odin](https://github.com/odtheking/Odin) (Settings System)
-> - [Odin-Fabric](https://github.com/odtheking/OdinFabric) & [Vexel](https://github.com/StellariumMC/vexel) (NanoVG Implementation)
+> - [Odin-Fabric](https://github.com/odtheking/Odin) (NVG Impl & Config System)
 
 ## About The Project
 
