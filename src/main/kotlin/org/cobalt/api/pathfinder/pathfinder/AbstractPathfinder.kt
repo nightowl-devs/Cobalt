@@ -12,9 +12,7 @@ import org.cobalt.api.pathfinder.pathing.INeighborStrategy
 import org.cobalt.api.pathfinder.pathing.Pathfinder
 import org.cobalt.api.pathfinder.pathing.configuration.PathfinderConfiguration
 import org.cobalt.api.pathfinder.pathing.context.EnvironmentContext
-import org.cobalt.api.pathfinder.pathing.processing.CostProcessor
-import org.cobalt.api.pathfinder.pathing.processing.Processor
-import org.cobalt.api.pathfinder.pathing.processing.ValidationProcessor
+import org.cobalt.api.pathfinder.pathing.processing.NodeProcessor
 import org.cobalt.api.pathfinder.pathing.processing.context.SearchContext
 import org.cobalt.api.pathfinder.pathing.result.Path
 import org.cobalt.api.pathfinder.pathing.result.PathState
@@ -53,10 +51,7 @@ abstract class AbstractPathfinder(
   }
 
   protected val navigationPointProvider: NavigationPointProvider = pathfinderConfiguration.provider
-  protected val validationProcessors: List<ValidationProcessor> =
-    pathfinderConfiguration.getNodeValidationProcessors()
-  protected val costProcessors: List<CostProcessor> =
-    pathfinderConfiguration.getNodeCostProcessors()
+  protected val processors: List<NodeProcessor> = pathfinderConfiguration.processors
   protected val neighborStrategy: INeighborStrategy = pathfinderConfiguration.neighborStrategy
 
   private val abortRequested = AtomicBoolean(false)
@@ -117,8 +112,6 @@ abstract class AbstractPathfinder(
         environmentContext
       )
 
-    val processors = getProcessors()
-
     try {
       processors.forEach { it.initializeSearch(searchContext) }
 
@@ -131,14 +124,12 @@ abstract class AbstractPathfinder(
           pathfinderConfiguration.heuristicStrategy
         )
 
-      if (!validationProcessors.isNullOrEmpty()) {
-        val isStartNodeInvalid = validationProcessors.any { !it.isValid(startNodeContext) }
-        if (isStartNodeInvalid) {
-          return PathfinderResultImpl(
-            PathState.FAILED,
-            PathImpl(start, target, EMPTY_PATH_POSITIONS)
-          )
-        }
+      val isStartNodeInvalid = processors.any { !it.isValid(startNodeContext) }
+      if (isStartNodeInvalid) {
+        return PathfinderResultImpl(
+          PathState.FAILED,
+          PathImpl(start, target, EMPTY_PATH_POSITIONS)
+        )
       }
 
       val openSet = PrimitiveMinHeap(1024)
@@ -208,13 +199,6 @@ abstract class AbstractPathfinder(
     }
 
     return heapKey
-  }
-
-  private fun getProcessors(): List<Processor> {
-    return buildList {
-      validationProcessors?.let(::addAll)
-      costProcessors?.let(::addAll)
-    }
   }
 
   private fun createAbortedResult(

@@ -141,22 +141,12 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
   }
 
   private fun isValidByCustomProcessors(context: EvaluationContext): Boolean {
-    if (validationProcessors.isNullOrEmpty()) {
-      return true
-    }
-
-    for (validator in validationProcessors) {
-      if (!validator.isValid(context)) {
-        return false
-      }
-    }
-    return true
+    return processors.all { it.isValid(context) }
   }
 
   private fun calculateGCost(context: EvaluationContext): Double {
     val baseCost = context.getBaseTransitionCost()
-    val additionalCost =
-      costProcessors?.sumOf { it.calculateCostContribution(context).value } ?: 0.0
+    val additionalCost = processors.sumOf { it.calculateCostContribution(context).value }
 
     val transitionCost = max(0.0, baseCost + additionalCost)
     return context.getPathCostToPreviousPosition() + transitionCost

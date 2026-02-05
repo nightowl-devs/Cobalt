@@ -17,14 +17,8 @@ class Node(
   val heuristic: Double =
     heuristicStrategy.calculate(HeuristicContext(position, start, target, heuristicWeights))
 
-  private var gCostInternal: Double = 0.0
+  var gCost: Double = 0.0
   var parent: Node? = null
-
-  var gCost: Double
-    get() = if (parent == null) 0.0 else gCostInternal
-    set(value) {
-      gCostInternal = value
-    }
 
   val fCost: Double
     get() = gCost + heuristic

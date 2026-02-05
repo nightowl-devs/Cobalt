@@ -4,8 +4,7 @@ import kotlin.math.sqrt
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import org.cobalt.api.pathfinder.pathing.processing.Cost
-import org.cobalt.api.pathfinder.pathing.processing.CostProcessor
-import org.cobalt.api.pathfinder.pathing.processing.ValidationProcessor
+import org.cobalt.api.pathfinder.pathing.processing.NodeProcessor
 import org.cobalt.api.pathfinder.pathing.processing.context.EvaluationContext
 
 /*
@@ -15,7 +14,7 @@ import org.cobalt.api.pathfinder.pathing.processing.context.EvaluationContext
  * please write a comment explaining WHY you did it that way. i dont like
  * magic numbers that i cant understand.
  */
-class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
+class MinecraftPathProcessor : NodeProcessor {
 
   private val mc: Minecraft = Minecraft.getInstance()
 

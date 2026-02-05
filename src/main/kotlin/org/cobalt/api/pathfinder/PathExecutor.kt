@@ -40,16 +40,14 @@ object PathExecutor {
 
     val processor = MinecraftPathProcessor()
     val config =
-      PathfinderConfiguration.builder()
-        .apply {
-          provider(MinecraftNavigationProvider())
-          maxIterations(20000)
-          async(true)
-          neighborStrategy(NeighborStrategies.HORIZONTAL_DIAGONAL_AND_VERTICAL)
-          nodeValidationProcessors(listOf(processor))
-          nodeCostProcessors(listOf(processor))
-        }
-        .build()
+      PathfinderConfiguration(
+        provider = MinecraftNavigationProvider(),
+        // as of now max iterations is 20,000 but maybe wanna higher
+        maxIterations = 20000,
+        async = true,
+        neighborStrategy = NeighborStrategies.HORIZONTAL_DIAGONAL_AND_VERTICAL,
+        processors = listOf(processor)
+      )
 
     val pathfinder = AStarPathfinder(config)
 
@@ -117,7 +115,7 @@ object PathExecutor {
     val horizontalDistSq =
       (player.x - targetVec.x) * (player.x - targetVec.x) +
         (player.z - targetVec.z) * (player.z - targetVec.z)
-    if (horizontalDistSq < 0.25) {
+    if (horizontalDistSq < .25) {
       currentWaypointIndex++
     }
   }
@@ -148,12 +146,12 @@ object PathExecutor {
       Render3D.drawBox(
         event.context,
         AABB(
-          currentPos.x - 0.25,
-          currentPos.y - 0.25,
-          currentPos.z - 0.25,
-          currentPos.x + 0.25,
-          currentPos.y + 0.25,
-          currentPos.z + 0.25
+          currentPos.x - .25,
+          currentPos.y - .25,
+          currentPos.z - .25,
+          currentPos.x + .25,
+          currentPos.y + .25,
+          currentPos.z + .25
         ),
         Color.GREEN,
         true
