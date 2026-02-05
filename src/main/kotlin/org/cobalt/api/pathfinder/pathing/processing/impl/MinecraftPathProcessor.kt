@@ -55,15 +55,12 @@ class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
       dy < -0.5 -> true // falling
       dy > 0.5 ->
         prevPoint.hasFloor() ||
-          currentPoint.isClimbable() ||
-          currentPoint.isLiquid() // jumping/climbing
+          currentPoint.isClimbable() // jumping/climbing
       else ->
         currentPoint.hasFloor() ||
           prevPoint.hasFloor() ||
           currentPoint.isClimbable() ||
-          prevPoint.isClimbable() ||
-          currentPoint.isLiquid() ||
-          prevPoint.isLiquid()
+          prevPoint.isClimbable()
     }
   }
 
