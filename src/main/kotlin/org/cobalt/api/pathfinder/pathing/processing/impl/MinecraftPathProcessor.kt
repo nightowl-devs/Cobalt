@@ -4,8 +4,7 @@ import kotlin.math.sqrt
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import org.cobalt.api.pathfinder.pathing.processing.Cost
-import org.cobalt.api.pathfinder.pathing.processing.CostProcessor
-import org.cobalt.api.pathfinder.pathing.processing.ValidationProcessor
+import org.cobalt.api.pathfinder.pathing.processing.NodeProcessor
 import org.cobalt.api.pathfinder.pathing.processing.context.EvaluationContext
 
 /*
@@ -15,7 +14,7 @@ import org.cobalt.api.pathfinder.pathing.processing.context.EvaluationContext
  * please write a comment explaining WHY you did it that way. i dont like
  * magic numbers that i cant understand.
  */
-class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
+class MinecraftPathProcessor : NodeProcessor {
 
   private val mc: Minecraft = Minecraft.getInstance()
 
@@ -24,10 +23,10 @@ class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
   }
 
   override fun isValid(context: EvaluationContext): Boolean {
-    val provider = context.getSearchContext().getNavigationPointProvider()
-    val pos = context.getCurrentPathPosition()
-    val prev = context.getPreviousPathPosition()
-    val env = context.getSearchContext().getEnvironmentContext()
+    val provider = context.navigationPointProvider
+    val pos = context.currentPathPosition
+    val prev = context.previousPathPosition
+    val env = context.environmentContext
 
     val currentPoint = provider.getNavigationPoint(pos, env)
 
@@ -69,10 +68,10 @@ class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
 
   override fun calculateCostContribution(context: EvaluationContext): Cost {
     val level = mc.level ?: return Cost.ZERO
-    val currentPos = context.getCurrentPathPosition()
-    val prevPos = context.getPreviousPathPosition() ?: return Cost.ZERO
-    val provider = context.getSearchContext().getNavigationPointProvider()
-    val env = context.getSearchContext().getEnvironmentContext()
+    val currentPos = context.currentPathPosition
+    val prevPos = context.previousPathPosition ?: return Cost.ZERO
+    val provider = context.navigationPointProvider
+    val env = context.environmentContext
 
     val currentPoint = provider.getNavigationPoint(currentPos, env)
     val prevPoint = provider.getNavigationPoint(prevPos, env)
@@ -105,7 +104,7 @@ class MinecraftPathProcessor : CostProcessor, ValidationProcessor {
     additionalCost += crampedPenalty
 
     // just make stuff smoother no more zigzags
-    val gpPos = context.getGrandparentPathPosition()
+    val gpPos = context.grandparentPathPosition
     if (gpPos != null) {
       val v1x = prevPos.x - gpPos.x
       val v1z = prevPos.z - gpPos.z

@@ -7,9 +7,9 @@ internal object InternalHeuristicUtils {
   private const val EPSILON = 1e-9
 
   fun calculatePerpendicularDistanceSq(progress: PathfindingProgress): Double {
-    val s = progress.startPosition()
-    val c = progress.currentPosition()
-    val t = progress.targetPosition()
+    val s = progress.start
+    val c = progress.current
+    val t = progress.target
 
     val sx = s.centeredX
     val sy = s.centeredY
@@ -44,7 +44,6 @@ internal object InternalHeuristicUtils {
     return crossSq / lineSq
   }
 
-  fun calculatePerpendicularDistance(progress: PathfindingProgress): Double {
-    return sqrt(calculatePerpendicularDistanceSq(progress))
-  }
+  fun calculatePerpendicularDistance(progress: PathfindingProgress): Double =
+    sqrt(calculatePerpendicularDistanceSq(progress))
 }

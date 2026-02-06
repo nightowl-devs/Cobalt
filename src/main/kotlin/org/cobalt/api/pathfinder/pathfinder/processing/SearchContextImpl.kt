@@ -7,24 +7,12 @@ import org.cobalt.api.pathfinder.provider.NavigationPointProvider
 import org.cobalt.api.pathfinder.wrapper.PathPosition
 
 class SearchContextImpl(
-  private val startPathPosition: PathPosition,
-  private val targetPathPosition: PathPosition,
-  private val pathfinderConfiguration: PathfinderConfiguration,
-  private val navigationPointProvider: NavigationPointProvider,
-  private val environmentContext: EnvironmentContext?,
+  override val startPathPosition: PathPosition,
+  override val targetPathPosition: PathPosition,
+  override val pathfinderConfiguration: PathfinderConfiguration,
+  override val navigationPointProvider: NavigationPointProvider,
+  override val environmentContext: EnvironmentContext?,
 ) : SearchContext {
 
-  private val sharedData: MutableMap<String, Any> = HashMap()
-
-  override fun getStartPathPosition(): PathPosition = startPathPosition
-
-  override fun getTargetPathPosition(): PathPosition = targetPathPosition
-
-  override fun getPathfinderConfiguration(): PathfinderConfiguration = pathfinderConfiguration
-
-  override fun getNavigationPointProvider(): NavigationPointProvider = navigationPointProvider
-
-  override fun getSharedData(): MutableMap<String, Any> = sharedData
-
-  override fun getEnvironmentContext(): EnvironmentContext? = environmentContext
+  override val sharedData: MutableMap<String, Any> = HashMap()
 }

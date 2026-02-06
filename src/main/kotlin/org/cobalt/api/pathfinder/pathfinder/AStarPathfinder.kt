@@ -1,20 +1,17 @@
 package org.cobalt.api.pathfinder.pathfinder
 
-import it.unimi.dsi.fastutil.longs.Long2DoubleMap
-import it.unimi.dsi.fastutil.longs.Long2DoubleOpenHashMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
-import java.util.function.LongFunction
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet
+import it.unimi.dsi.fastutil.longs.LongSet
 import kotlin.math.abs
 import kotlin.math.max
-import net.minecraft.util.Mth
 import org.cobalt.api.pathfinder.Node
 import org.cobalt.api.pathfinder.pathfinder.heap.PrimitiveMinHeap
 import org.cobalt.api.pathfinder.pathfinder.processing.EvaluationContextImpl
 import org.cobalt.api.pathfinder.pathing.configuration.PathfinderConfiguration
 import org.cobalt.api.pathfinder.pathing.processing.context.EvaluationContext
 import org.cobalt.api.pathfinder.pathing.processing.context.SearchContext
-import org.cobalt.api.pathfinder.util.GridRegionData
 import org.cobalt.api.pathfinder.util.RegionKey
 import org.cobalt.api.pathfinder.wrapper.PathPosition
 
@@ -24,7 +21,7 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
 
   override fun insertStartNode(node: Node, fCost: Double, openSet: PrimitiveMinHeap) {
     val session = getSessionOrThrow()
-    val packedPos = RegionKey.pack(node.getPosition())
+    val packedPos = RegionKey.pack(node.position)
     openSet.insertOrUpdate(packedPos, fCost)
     session.openSetNodes[packedPos] = node
   }
@@ -49,10 +46,10 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
     searchContext: SearchContext,
   ) {
     val session = getSessionOrThrow()
-    val offsets = neighborStrategy.getOffsets(currentNode.getPosition())
+    val offsets = neighborStrategy.getOffsets(currentNode.position)
 
     for (offset in offsets) {
-      val neighborPos = currentNode.getPosition().add(offset)
+      val neighborPos = currentNode.position.add(offset)
       val packedPos = RegionKey.pack(neighborPos)
 
       if (openSet.contains(packedPos)) {
@@ -61,37 +58,12 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
         continue
       }
 
-      val regionData = session.getOrCreateRegionData(neighborPos)
-      if (regionData.getBloomFilter().mightContain(neighborPos) &&
-        regionData.getRegionalExaminedPositions().contains(packedPos)
-      ) {
-
-        var shouldReopen = false
-        if (pathfinderConfiguration.shouldReopenClosedNodes()) {
-          val oldCost = session.closedSetGCosts[packedPos]
-
-          val tempNeighbor =
-            createNeighborNode(neighborPos, requestStart, requestTarget, currentNode)
-          val context =
-            EvaluationContextImpl(
-              searchContext,
-              tempNeighbor,
-              currentNode,
-              pathfinderConfiguration.heuristicStrategy
-            )
-          val newGCost = calculateGCost(context)
-
-          if (oldCost.isNaN() || newGCost + Math.ulp(newGCost) < oldCost) {
-            session.closedSetGCosts[packedPos] = newGCost
-            shouldReopen = true
-          }
-        }
-
-        if (!shouldReopen) continue
+      if (session.closedSet.contains(packedPos)) {
+        continue
       }
 
       val neighbor = createNeighborNode(neighborPos, requestStart, requestTarget, currentNode)
-      neighbor.setParent(currentNode)
+      neighbor.parent = currentNode
 
       val context =
         EvaluationContextImpl(
@@ -106,8 +78,8 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
       }
 
       val gCost = calculateGCost(context)
-      neighbor.setGCost(gCost)
-      val fCost = neighbor.getFCost()
+      neighbor.gCost = gCost
+      val fCost = neighbor.fCost
       val heapKey = calculateHeapKey(neighbor, fCost)
 
       openSet.insertOrUpdate(packedPos, heapKey)
@@ -131,17 +103,17 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
       )
 
     val newG = calculateGCost(context)
-    val tol = Math.ulp(max(abs(newG), abs(existing.getGCost())))
+    val tol = Math.ulp(max(abs(newG), abs(existing.gCost)))
 
-    if (newG + tol >= existing.getGCost()) return
+    if (newG + tol >= existing.gCost) return
 
     if (!isValidByCustomProcessors(context)) {
       return
     }
 
-    existing.setParent(currentNode)
-    existing.setGCost(newG)
-    val newF = existing.getFCost()
+    existing.parent = currentNode
+    existing.gCost = newG
+    val newF = existing.fCost
     val newKey = calculateHeapKey(existing, newF)
     val oldKey = openSet.getCost(packedPos)
 
@@ -164,46 +136,27 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
       target,
       pathfinderConfiguration.heuristicWeights,
       pathfinderConfiguration.heuristicStrategy,
-      parent.getDepth() + 1
+      parent.depth + 1
     )
   }
 
   private fun isValidByCustomProcessors(context: EvaluationContext): Boolean {
-    if (validationProcessors.isNullOrEmpty()) {
-      return true
-    }
-
-    for (validator in validationProcessors) {
-      if (!validator.isValid(context)) {
-        return false
-      }
-    }
-    return true
+    return processors.all { it.isValid(context) }
   }
 
   private fun calculateGCost(context: EvaluationContext): Double {
-    val baseCost = context.getBaseTransitionCost()
-    val additionalCost =
-      costProcessors?.sumOf { it.calculateCostContribution(context).value } ?: 0.0
+    val baseCost = context.baseTransitionCost
+    val additionalCost = processors.sumOf { it.calculateCostContribution(context).value }
 
     val transitionCost = max(0.0, baseCost + additionalCost)
-    return context.getPathCostToPreviousPosition() + transitionCost
+    return context.pathCostToPreviousPosition + transitionCost
   }
 
   override fun markNodeAsExpanded(node: Node) {
     val session = getSessionOrThrow()
-    val position = node.getPosition()
-    val packedPos = RegionKey.pack(position)
+    val packedPos = RegionKey.pack(node.position)
 
-    session.openSetNodes.remove(packedPos)
-
-    if (pathfinderConfiguration.shouldReopenClosedNodes()) {
-      session.closedSetGCosts[packedPos] = node.getGCost()
-    }
-
-    val regionData = session.getOrCreateRegionData(position)
-    regionData.getBloomFilter().put(position)
-    regionData.getRegionalExaminedPositions().add(packedPos)
+    session.closedSet.add(packedPos)
   }
 
   override fun performAlgorithmCleanup() {
@@ -217,23 +170,8 @@ class AStarPathfinder(configuration: PathfinderConfiguration) : AbstractPathfind
       )
   }
 
-  private inner class PathfindingSession {
-    val visitedRegions: Long2ObjectMap<GridRegionData> = Long2ObjectOpenHashMap()
+  private class PathfindingSession {
     val openSetNodes: Long2ObjectMap<Node> = Long2ObjectOpenHashMap()
-    val closedSetGCosts: Long2DoubleMap =
-      Long2DoubleOpenHashMap().apply { defaultReturnValue(Double.NaN) }
-
-    fun getOrCreateRegionData(position: PathPosition): GridRegionData {
-      val cellSize = pathfinderConfiguration.gridCellSize
-      val rX = Mth.floorDiv(position.flooredX, cellSize)
-      val rY = Mth.floorDiv(position.flooredY, cellSize)
-      val rZ = Mth.floorDiv(position.flooredZ, cellSize)
-      val regionKey = RegionKey.pack(rX, rY, rZ)
-
-      return visitedRegions.computeIfAbsent(
-        regionKey,
-        LongFunction { GridRegionData(pathfinderConfiguration) }
-      )
-    }
+    val closedSet: LongSet = LongOpenHashSet()
   }
 }

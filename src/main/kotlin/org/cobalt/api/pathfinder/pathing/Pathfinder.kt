@@ -2,7 +2,6 @@ package org.cobalt.api.pathfinder.pathing
 
 import java.util.concurrent.CompletionStage
 import org.cobalt.api.pathfinder.pathing.context.EnvironmentContext
-import org.cobalt.api.pathfinder.pathing.hook.PathfinderHook
 import org.cobalt.api.pathfinder.pathing.result.PathfinderResult
 import org.cobalt.api.pathfinder.wrapper.PathPosition
 
@@ -18,6 +17,4 @@ interface Pathfinder {
   ): CompletionStage<PathfinderResult>
 
   fun abort()
-
-  fun registerPathfindingHook(hook: PathfinderHook)
 }

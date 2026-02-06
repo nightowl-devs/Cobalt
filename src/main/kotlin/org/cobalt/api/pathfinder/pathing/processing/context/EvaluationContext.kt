@@ -6,36 +6,30 @@ import org.cobalt.api.pathfinder.provider.NavigationPointProvider
 import org.cobalt.api.pathfinder.wrapper.PathPosition
 
 interface EvaluationContext {
-  fun getCurrentPathPosition(): PathPosition
-  fun getPreviousPathPosition(): PathPosition?
-  fun getCurrentNodeDepth(): Int
-  fun getCurrentNodeHeuristicValue(): Double
-  fun getPathCostToPreviousPosition(): Double
-  fun getBaseTransitionCost(): Double
-  fun getSearchContext(): SearchContext
-  fun getGrandparentPathPosition(): PathPosition?
+  val currentPathPosition: PathPosition
+  val previousPathPosition: PathPosition?
+  val currentNodeDepth: Int
+  val currentNodeHeuristicValue: Double
+  val pathCostToPreviousPosition: Double
+  val baseTransitionCost: Double
+  val searchContext: SearchContext
+  val grandparentPathPosition: PathPosition?
 
-  fun getPathfinderConfiguration(): PathfinderConfiguration {
-    return getSearchContext().getPathfinderConfiguration()
-  }
+  val pathfinderConfiguration: PathfinderConfiguration
+    get() = searchContext.pathfinderConfiguration
 
-  fun getNavigationPointProvider(): NavigationPointProvider {
-    return getSearchContext().getNavigationPointProvider()
-  }
+  val navigationPointProvider: NavigationPointProvider
+    get() = searchContext.navigationPointProvider
 
-  fun getSharedData(): MutableMap<String, Any> {
-    return getSearchContext().getSharedData()
-  }
+  val sharedData: MutableMap<String, Any>
+    get() = searchContext.sharedData
 
-  fun getStartPathPosition(): PathPosition {
-    return getSearchContext().getStartPathPosition()
-  }
+  val startPathPosition: PathPosition
+    get() = searchContext.startPathPosition
 
-  fun getTargetPathPosition(): PathPosition {
-    return getSearchContext().getTargetPathPosition()
-  }
+  val targetPathPosition: PathPosition
+    get() = searchContext.targetPathPosition
 
-  fun getEnvironmentContext(): EnvironmentContext? {
-    return getSearchContext().getEnvironmentContext()
-  }
+  val environmentContext: EnvironmentContext?
+    get() = searchContext.environmentContext
 }

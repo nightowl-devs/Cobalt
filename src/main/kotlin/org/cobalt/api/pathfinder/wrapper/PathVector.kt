@@ -5,16 +5,6 @@ import net.minecraft.util.Mth
 
 data class PathVector(val x: Double, val y: Double, val z: Double) {
 
-  companion object {
-    fun computeDistance(A: PathVector, B: PathVector, C: PathVector): Double {
-      val d = C.subtract(B).divide(C.distance(B))
-      val v = A.subtract(B)
-      val t = v.dot(d)
-      val P = B.add(d.multiply(t))
-      return P.distance(A)
-    }
-  }
-
   fun dot(other: PathVector): Double = x * other.x + y * other.y + z * other.z
 
   fun length(): Double = sqrt(Mth.square(x) + Mth.square(y) + Mth.square(z))
@@ -39,10 +29,4 @@ data class PathVector(val x: Double, val y: Double, val z: Double) {
 
   fun add(other: PathVector): PathVector = PathVector(x + other.x, y + other.y, z + other.z)
 
-  fun getCrossProduct(o: PathVector): PathVector {
-    val crossX = y * o.z - o.y * z
-    val crossY = z * o.x - o.z * x
-    val crossZ = x * o.y - o.x * y
-    return PathVector(crossX, crossY, crossZ)
-  }
 }

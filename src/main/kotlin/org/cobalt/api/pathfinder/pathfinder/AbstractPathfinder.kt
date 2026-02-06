@@ -1,6 +1,5 @@
 package org.cobalt.api.pathfinder.pathfinder
 
-import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
@@ -13,11 +12,7 @@ import org.cobalt.api.pathfinder.pathing.INeighborStrategy
 import org.cobalt.api.pathfinder.pathing.Pathfinder
 import org.cobalt.api.pathfinder.pathing.configuration.PathfinderConfiguration
 import org.cobalt.api.pathfinder.pathing.context.EnvironmentContext
-import org.cobalt.api.pathfinder.pathing.hook.PathfinderHook
-import org.cobalt.api.pathfinder.pathing.hook.PathfindingContext
-import org.cobalt.api.pathfinder.pathing.processing.CostProcessor
-import org.cobalt.api.pathfinder.pathing.processing.Processor
-import org.cobalt.api.pathfinder.pathing.processing.ValidationProcessor
+import org.cobalt.api.pathfinder.pathing.processing.NodeProcessor
 import org.cobalt.api.pathfinder.pathing.processing.context.SearchContext
 import org.cobalt.api.pathfinder.pathing.result.Path
 import org.cobalt.api.pathfinder.pathing.result.PathState
@@ -25,7 +20,6 @@ import org.cobalt.api.pathfinder.pathing.result.PathfinderResult
 import org.cobalt.api.pathfinder.provider.NavigationPointProvider
 import org.cobalt.api.pathfinder.result.PathImpl
 import org.cobalt.api.pathfinder.result.PathfinderResultImpl
-import org.cobalt.api.pathfinder.wrapper.Depth
 import org.cobalt.api.pathfinder.wrapper.PathPosition
 
 abstract class AbstractPathfinder(
@@ -57,13 +51,8 @@ abstract class AbstractPathfinder(
   }
 
   protected val navigationPointProvider: NavigationPointProvider = pathfinderConfiguration.provider
-  protected val validationProcessors: List<ValidationProcessor>? =
-    pathfinderConfiguration.getNodeValidationProcessors()
-  protected val costProcessors: List<CostProcessor>? =
-    pathfinderConfiguration.getNodeCostProcessors()
+  protected val processors: List<NodeProcessor> = pathfinderConfiguration.processors
   protected val neighborStrategy: INeighborStrategy = pathfinderConfiguration.neighborStrategy
-
-  private val pathfinderHooks: MutableSet<PathfinderHook> = Collections.synchronizedSet(HashSet())
 
   private val abortRequested = AtomicBoolean(false)
 
@@ -78,10 +67,6 @@ abstract class AbstractPathfinder(
 
   override fun abort() {
     this.abortRequested.set(true)
-  }
-
-  override fun registerPathfindingHook(hook: PathfinderHook) {
-    this.pathfinderHooks.add(hook)
   }
 
   private fun initiatePathing(
@@ -127,8 +112,6 @@ abstract class AbstractPathfinder(
         environmentContext
       )
 
-    val processors = getProcessors()
-
     try {
       processors.forEach { it.initializeSearch(searchContext) }
 
@@ -141,22 +124,20 @@ abstract class AbstractPathfinder(
           pathfinderConfiguration.heuristicStrategy
         )
 
-      if (!validationProcessors.isNullOrEmpty()) {
-        val isStartNodeInvalid = validationProcessors.any { !it.isValid(startNodeContext) }
-        if (isStartNodeInvalid) {
-          return PathfinderResultImpl(
-            PathState.FAILED,
-            PathImpl(start, target, EMPTY_PATH_POSITIONS)
-          )
-        }
+      val isStartNodeInvalid = processors.any { !it.isValid(startNodeContext) }
+      if (isStartNodeInvalid) {
+        return PathfinderResultImpl(
+          PathState.FAILED,
+          PathImpl(start, target, EMPTY_PATH_POSITIONS)
+        )
       }
 
       val openSet = PrimitiveMinHeap(1024)
       val startKey =
         try {
-          calculateHeapKey(startNode, startNode.getFCost())
+          calculateHeapKey(startNode, startNode.fCost)
         } catch (t: Throwable) {
-          startNode.getFCost()
+          startNode.fCost
         }
 
       insertStartNode(startNode, startKey, openSet)
@@ -174,13 +155,7 @@ abstract class AbstractPathfinder(
         val currentNode = extractBestNode(openSet)
         markNodeAsExpanded(currentNode)
 
-        pathfinderHooks.forEach { hook ->
-          hook.onPathfindingStep(
-            PathfindingContext(currentNode.getPosition(), Depth.of(currentDepth))
-          )
-        }
-
-        if (currentNode.getHeuristic() < bestFallbackNode.getHeuristic()) {
+        if (currentNode.heuristic < bestFallbackNode.heuristic) {
           bestFallbackNode = currentNode
         }
 
@@ -215,7 +190,7 @@ abstract class AbstractPathfinder(
   }
 
   fun calculateHeapKey(neighbor: Node, fCost: Double): Double {
-    val heuristic = neighbor.getHeuristic()
+    val heuristic = neighbor.heuristic
     val tieBreaker = TIE_BREAKER_WEIGHT * (heuristic / (abs(fCost) + 1))
     var heapKey = fCost - tieBreaker
 
@@ -224,15 +199,6 @@ abstract class AbstractPathfinder(
     }
 
     return heapKey
-  }
-
-  private fun getProcessors(): List<Processor> {
-    val processors = mutableListOf<Processor>()
-
-    validationProcessors?.let { processors.addAll(it) }
-    costProcessors?.let { processors.addAll(it) }
-
-    return processors
   }
 
   private fun createAbortedResult(
@@ -268,7 +234,7 @@ abstract class AbstractPathfinder(
 
   private fun hasReachedPathLengthLimit(currentNode: Node): Boolean {
     val maxLength = pathfinderConfiguration.maxLength
-    return maxLength > 0 && currentNode.getDepth() >= maxLength
+    return maxLength > 0 && currentNode.depth >= maxLength
   }
 
   private fun determinePostLoopResult(
@@ -296,8 +262,8 @@ abstract class AbstractPathfinder(
   }
 
   protected fun reconstructPath(start: PathPosition, target: PathPosition, endNode: Node): Path {
-    if (endNode.getParent() == null && endNode.getDepth() == 0) {
-      return PathImpl(start, target, listOf(endNode.getPosition()))
+    if (endNode.parent == null && endNode.depth == 0) {
+      return PathImpl(start, target, listOf(endNode.position))
     }
 
     val pathPositions = tracePathPositionsFromNode(endNode)
@@ -305,8 +271,8 @@ abstract class AbstractPathfinder(
   }
 
   private fun tracePathPositionsFromNode(leafNode: Node): List<PathPosition> {
-    return generateSequence(leafNode) { it.getParent() }
-      .map { it.getPosition() }
+    return generateSequence(leafNode) { it.parent }
+      .map { it.position }
       .toList()
       .reversed()
   }

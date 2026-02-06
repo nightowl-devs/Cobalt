@@ -46,14 +46,15 @@ data class PathPosition(val x: Double, val y: Double, val z: Double) {
 
   fun mid(): PathPosition = PathPosition(flooredX + 0.5, flooredY + 0.5, flooredZ + 0.5)
 
-  fun midPoint(end: PathPosition): PathPosition {
-    return PathPosition((x + end.x) / 2, (y + end.y) / 2, (z + end.z) / 2)
-  }
+  fun midPoint(end: PathPosition): PathPosition =
+    PathPosition((x + end.x) / 2, (y + end.y) / 2, (z + end.z) / 2)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
-    if (other !is PathPosition) return false
-    return flooredX == other.flooredX && flooredY == other.flooredY && flooredZ == other.flooredZ
+    return other is PathPosition &&
+      flooredX == other.flooredX &&
+      flooredY == other.flooredY &&
+      flooredZ == other.flooredZ
   }
 
   override fun hashCode(): Int {
@@ -63,5 +64,4 @@ data class PathPosition(val x: Double, val y: Double, val z: Double) {
     return result
   }
 
-  override fun toString(): String = "PathPosition(x=$x, y=$y, z=$z)"
 }
