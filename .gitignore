@@ -5,3 +5,10 @@ build/
 run/
 docs-versions/
 .vscode/
+
+.project
+.classpath
+bin
+.settings
+.sisyphus
+
