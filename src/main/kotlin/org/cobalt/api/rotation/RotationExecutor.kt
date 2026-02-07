@@ -18,11 +18,27 @@ object RotationExecutor {
   private var currStrat: IRotationStrategy? = null
   private var isRotating: Boolean = false
 
-  fun rotateTo(
-    endRot: Rotation,
-    strategy: IRotationStrategy,
-  ) {
+  private var onFinish: (() -> Unit)? = null
+
+fun rotateTo(
+  endRot: Rotation,
+  strategy: IRotationStrategy,
+  onFinish: () -> Unit = {},
+) {
     stopRotating()
+    //if yaw same and pitch same dont rotate :v:
+    if (AngleUtils.getRotationDelta(
+        mc.player!!.yRot,
+        endRot.yaw
+      ) == 0f && AngleUtils.getRotationDelta(
+        mc.player!!.xRot,
+        endRot.pitch
+      ) == 0f
+    ) {
+      onFinish?.invoke()
+      return
+    }
+    this.onFinish = onFinish
 
     targetYaw = endRot.yaw
     targetPitch = endRot.pitch
@@ -36,6 +52,8 @@ object RotationExecutor {
     currStrat?.onStop()
     currStrat = null
     isRotating = false
+    onFinish?.invoke()
+    onFinish = null
   }
 
   fun isRotating(): Boolean {
