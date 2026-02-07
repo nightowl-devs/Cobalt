@@ -9,8 +9,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 import net.minecraft.client.Minecraft
-import org.cobalt.api.util.ui.NVGRenderer.beginFrame
-import org.cobalt.api.util.ui.NVGRenderer.endFrame
 import org.cobalt.api.util.ui.NVGRenderer.image
 import org.cobalt.api.util.ui.NVGRenderer.pop
 import org.cobalt.api.util.ui.NVGRenderer.popScissor
@@ -25,21 +23,16 @@ import org.lwjgl.nanovg.NanoSVG.*
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3.*
 import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33C
 import org.lwjgl.stb.STBImage.stbi_load_from_memory
 import org.lwjgl.system.MemoryUtil.memAlloc
 import org.lwjgl.system.MemoryUtil.memFree
 
 /**
- * A renderer that uses NanoVG for 2D graphics rendering.
+ * Implementation from OdinFabric
+ * Original work: https://github.com/odtheking/OdinFabric
  *
- * This object wraps NanoVG functions to make it easier to draw shapes, text,
- * images, and gradients. All drawing must happen between [beginFrame]
- * and [endFrame] calls.
- *
- * Implementation from vexel by StellariumMC
- * Original work: https://github.com/StellariumMC/vexel
- *
- * @author StellariumMC Odin Contributors
+ * @author OdinFabric
  */
 @Suppress("unused")
 object NVGRenderer {
@@ -49,12 +42,14 @@ object NVGRenderer {
 
   private val nvgPaint = NVGPaint.malloc()
   private val nvgColor = NVGColor.malloc()
-  private val nvgColor2: NVGColor = NVGColor.malloc()
+  private val nvgColor2 = NVGColor.malloc()
+
   val interFont = Font("Inter", "/assets/cobalt/fonts/Inter.otf")
 
-  private val images = HashMap<Image, NVGImage>()
   private val fontMap = HashMap<Font, NVGFont>()
   private val fontBounds = FloatArray(4)
+
+  private val images = HashMap<Image, NVGImage>()
 
   private var scissor: Scissor? = null
   private var drawing: Boolean = false
@@ -65,14 +60,6 @@ object NVGRenderer {
     require(vg != -1L) { "Failed to initialize NanoVG" }
   }
 
-  /**
-   * Starts a new drawing frame. Call this before any drawing operations.
-   *
-   * @param width The width of the frame in pixels
-   * @param height The height of the frame in pixels
-   * @throws IllegalStateException if called while already drawing
-   */
-  @JvmStatic
   fun beginFrame(width: Float, height: Float) {
     if (drawing) throw IllegalStateException("[NVGRenderer] Already drawing, but called beginFrame")
 
@@ -86,17 +73,12 @@ object NVGRenderer {
     GlStateManager._viewport(0, 0, framebuffer.width, framebuffer.height)
     GlStateManager._activeTexture(GL30.GL_TEXTURE0)
 
+    GL33C.glBindSampler(0, 0)
     nvgBeginFrame(vg, width, height, 1f)
     nvgTextAlign(vg, NVG_ALIGN_LEFT or NVG_ALIGN_TOP)
     drawing = true
   }
 
-  /**
-   * Ends the current drawing frame and restores OpenGL state.
-   *
-   * @throws IllegalStateException if called when not drawing
-   */
-  @JvmStatic
   fun endFrame() {
     if (!drawing) throw IllegalStateException("[NVGRenderer] Not drawing, but called endFrame")
     nvgEndFrame(vg)
@@ -115,66 +97,30 @@ object NVGRenderer {
     drawing = false
   }
 
-  /** Saves the current transform state. Use with [pop] to restore it later. */
   @JvmStatic
   fun push() = nvgSave(vg)
 
-  /** Restores the transform state saved by the last [push] call. */
   @JvmStatic
   fun pop() = nvgRestore(vg)
 
-  /**
-   * Scales subsequent drawing operations.
-   *
-   * @param x Scale factor on the x-axis
-   * @param y Scale factor on the y-axis
-   */
   @JvmStatic
   fun scale(x: Float, y: Float) = nvgScale(vg, x, y)
 
-  /**
-   * Translates (moves) subsequent drawing operations.
-   *
-   * @param x Distance to move on the x-axis
-   * @param y Distance to move on the y-axis
-   */
   @JvmStatic
   fun translate(x: Float, y: Float) = nvgTranslate(vg, x, y)
 
-  /**
-   * Rotates subsequent drawing operations.
-   *
-   * @param amount Rotation amount in radians
-   */
   @JvmStatic
   fun rotate(amount: Float) = nvgRotate(vg, amount)
 
-  /**
-   * Sets the global alpha (transparency) for subsequent drawing operations.
-   *
-   * @param amount Alpha value between 0 (fully transparent) and 1 (fully opaque)
-   */
   @JvmStatic
   fun globalAlpha(amount: Float) = nvgGlobalAlpha(vg, amount.coerceIn(0f, 1f))
 
-  /**
-   * Pushes a scissor region to clip drawing. Only content inside this region will be visible.
-   * Call [popScissor] to remove it. Scissors can be nested.
-   *
-   * @param x X position of the scissor region
-   * @param y Y position of the scissor region
-   * @param w Width of the scissor region
-   * @param h Height of the scissor region
-   */
   @JvmStatic
   fun pushScissor(x: Float, y: Float, w: Float, h: Float) {
     scissor = Scissor(scissor, x, y, w + x, h + y)
     scissor?.applyScissor()
   }
 
-  /**
-   * Removes the most recently pushed scissor region.
-   */
   @JvmStatic
   fun popScissor() {
     nvgResetScissor(vg)
@@ -182,16 +128,6 @@ object NVGRenderer {
     scissor?.applyScissor()
   }
 
-  /**
-   * Draws a line between two points.
-   *
-   * @param x1 Starting X coordinate
-   * @param y1 Starting Y coordinate
-   * @param x2 Ending X coordinate
-   * @param y2 Ending Y coordinate
-   * @param thickness Line thickness in pixels
-   * @param color Line color in ARGB format
-   */
   @JvmStatic
   fun line(x1: Float, y1: Float, x2: Float, y2: Float, thickness: Float, color: Int) {
     nvgBeginPath(vg)
@@ -203,17 +139,6 @@ object NVGRenderer {
     nvgStroke(vg)
   }
 
-  /**
-   * Draws a rectangle with rounded corners on either the top or bottom.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param color Fill color in ARGB format
-   * @param radius Corner radius for the rounded side
-   * @param roundTop If true, rounds the top corners; if false, rounds the bottom corners
-   */
   @JvmStatic
   fun drawHalfRoundedRect(x: Float, y: Float, w: Float, h: Float, color: Int, radius: Float, roundTop: Boolean) {
     nvgBeginPath(vg)
@@ -242,16 +167,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Draws a filled rectangle with rounded corners.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param color Fill color in ARGB format
-   * @param radius Corner radius
-   */
   @JvmStatic
   fun rect(x: Float, y: Float, w: Float, h: Float, color: Int, radius: Float) {
     nvgBeginPath(vg)
@@ -261,15 +176,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Draws a filled rectangle with sharp corners.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param color Fill color in ARGB format
-   */
   @JvmStatic
   fun rect(x: Float, y: Float, w: Float, h: Float, color: Int) {
     nvgBeginPath(vg)
@@ -279,17 +185,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Draws a hollow rectangle outline with rounded corners.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param thickness Border thickness in pixels
-   * @param color Border color in ARGB format
-   * @param radius Corner radius
-   */
   @JvmStatic
   fun hollowRect(x: Float, y: Float, w: Float, h: Float, thickness: Float, color: Int, radius: Float) {
     nvgBeginPath(vg)
@@ -301,19 +196,6 @@ object NVGRenderer {
     nvgStroke(vg)
   }
 
-  /**
-   * Draws a hollow rectangle outline with a gradient stroke.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param thickness Border thickness in pixels
-   * @param color1 Starting gradient color in ARGB format
-   * @param color2 Ending gradient color in ARGB format
-   * @param gradient Gradient direction
-   * @param radius Corner radius
-   */
   @JvmStatic
   fun hollowGradientRect(
     x: Float,
@@ -334,18 +216,6 @@ object NVGRenderer {
     nvgStroke(vg)
   }
 
-  /**
-   * Draws a filled rectangle with a gradient.
-   *
-   * @param x X position
-   * @param y Y position
-   * @param w Width
-   * @param h Height
-   * @param color1 Starting gradient color in ARGB format
-   * @param color2 Ending gradient color in ARGB format
-   * @param gradient Gradient direction
-   * @param radius Corner radius
-   */
   @JvmStatic
   fun gradientRect(
     x: Float,
@@ -364,14 +234,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Draws a filled circle.
-   *
-   * @param x Center X coordinate
-   * @param y Center Y coordinate
-   * @param radius Circle radius
-   * @param color Fill color in ARGB format
-   */
   @JvmStatic
   fun circle(x: Float, y: Float, radius: Float, color: Int) {
     nvgBeginPath(vg)
@@ -381,16 +243,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Renders text at the specified position.
-   *
-   * @param text The text to render
-   * @param x X position
-   * @param y Y position
-   * @param size Font size
-   * @param color Text color in ARGB format
-   * @param font The font to use (defaults to Inter)
-   */
   @JvmStatic
   fun text(text: String, x: Float, y: Float, size: Float, color: Int, font: Font = interFont) {
     nvgFontSize(vg, size)
@@ -400,16 +252,6 @@ object NVGRenderer {
     nvgText(vg, x, y + .5f, text)
   }
 
-  /**
-   * Renders text with a drop shadow effect.
-   *
-   * @param text The text to render
-   * @param x X position
-   * @param y Y position
-   * @param size Font size
-   * @param color Text color in ARGB format
-   * @param font The font to use (defaults to Inter)
-   */
   @JvmStatic
   fun textShadow(text: String, x: Float, y: Float, size: Float, color: Int, font: Font = interFont) {
     nvgFontFaceId(vg, getFontID(font))
@@ -423,14 +265,6 @@ object NVGRenderer {
     nvgText(vg, round(x), round(y), text)
   }
 
-  /**
-   * Calculates the width of the given text when rendered.
-   *
-   * @param text The text to measure
-   * @param size Font size
-   * @param font The font to use (defaults to Inter)
-   * @return The width in pixels
-   */
   @JvmStatic
   fun textWidth(text: String, size: Float, font: Font = interFont): Float {
     nvgFontSize(vg, size)
@@ -438,18 +272,6 @@ object NVGRenderer {
     return nvgTextBounds(vg, 0f, 0f, text, fontBounds)
   }
 
-  /**
-   * Renders text that automatically wraps to fit within a specified width.
-   *
-   * @param text The text to render
-   * @param x X position
-   * @param y Y position
-   * @param w Maximum width before wrapping
-   * @param size Font size
-   * @param color Text color in ARGB format
-   * @param font The font to use
-   * @param lineHeight Line height multiplier (1.0 = normal spacing)
-   */
   @JvmStatic
   fun drawWrappedString(
     text: String,
@@ -469,16 +291,6 @@ object NVGRenderer {
     nvgTextBox(vg, x, y, w, text)
   }
 
-  /**
-   * Calculates the bounds of wrapped text.
-   *
-   * @param text The text to measure
-   * @param w Maximum width before wrapping
-   * @param size Font size
-   * @param font The font to use
-   * @param lineHeight Line height multiplier
-   * @return Array containing [minX, minY, maxX, maxY]
-   */
   @JvmStatic
   fun wrappedTextBounds(
     text: String,
@@ -495,14 +307,6 @@ object NVGRenderer {
     return bounds
   }
 
-  /**
-   * Creates a NanoVG image from an existing OpenGL texture.
-   *
-   * @param textureId The OpenGL texture ID
-   * @param textureWidth Width of the texture
-   * @param textureHeight Height of the texture
-   * @return NanoVG image handle
-   */
   @JvmStatic
   fun createNVGImage(textureId: Int, textureWidth: Int, textureHeight: Int): Int =
     nvglCreateImageFromHandle(
@@ -513,17 +317,6 @@ object NVGRenderer {
       NVG_IMAGE_NEAREST or NVG_IMAGE_NODELETE
     )
 
-  /**
-   * Draws an image at the specified position and size.
-   *
-   * @param image The image to draw
-   * @param x X position
-   * @param y Y position
-   * @param w Width to render
-   * @param h Height to render
-   * @param radius Corner radius for rounded image (0 = sharp corners)
-   * @param colorMask Color tint/mask to apply (0 = no tint)
-   */
   @JvmStatic
   fun image(image: Image, x: Float, y: Float, w: Float, h: Float, radius: Float = 0F, colorMask: Int = 0) {
     nvgImagePattern(vg, x, y, w, h, 0f, getImage(image), 1f, nvgPaint)
@@ -549,13 +342,6 @@ object NVGRenderer {
     nvgFill(vg)
   }
 
-  /**
-   * Loads an image from a resource path. Supports both PNG/JPG and SVG formats.
-   * Images are reference-counted, so the same image can be loaded multiple times safely.
-   *
-   * @param resourcePath Path to the image resource
-   * @return The loaded image
-   */
   @JvmStatic
   fun createImage(resourcePath: String): Image {
     val image = images.keys.find { it.identifier == resourcePath } ?: Image(resourcePath)
@@ -564,12 +350,6 @@ object NVGRenderer {
     return image
   }
 
-  /**
-   * Deletes an image and frees its resources. Uses reference counting, so the image
-   * is only truly deleted when all references are released.
-   *
-   * @param image The image to delete
-   */
   @JvmStatic
   fun deleteImage(image: Image) {
     val nvgImage = images[image] ?: return

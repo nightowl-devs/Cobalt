@@ -52,8 +52,8 @@ object AddonLoader {
       Files.newDirectoryStream(addonsDir, "*.jar").use { stream ->
         for (jarPath in stream) {
           try {
-            loadAddon(jarPath)
             FabricLauncherBase.getLauncher().addToClassPath(jarPath)
+            loadAddon(jarPath)
           } catch (e: Exception) {
             e.printStackTrace()
           }
@@ -92,7 +92,7 @@ object AddonLoader {
           )
         }
 
-        val instance = Class.forName(entrypoint, true, jarPath.javaClass.classLoader).let {
+        val instance = Class.forName(entrypoint).let {
           try {
             it.getField("INSTANCE").get(null)
           } catch (_: NoSuchFieldException) {
