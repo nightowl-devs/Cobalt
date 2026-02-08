@@ -58,6 +58,7 @@ internal object MainCommand : Command(name = "cobalt", aliases = arrayOf("cb")) 
 
   @SubCommand
   fun notification(title: String, description: String) {
-    NotificationManager.sendNotification(title, description)
+    NotificationManager.queue(title, description, 2000L)
   }
+
 }

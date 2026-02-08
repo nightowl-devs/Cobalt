@@ -3,130 +3,90 @@ package org.cobalt.internal.ui.notification
 import java.awt.Color
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
+import org.cobalt.internal.ui.animation.BounceAnimation
 import org.cobalt.internal.ui.animation.EaseOutAnimation
 
 internal class UINotification(
   private val title: String,
   private val description: String,
-  private val duration: Long = 5000L,
+  val duration: Long,
 ) : UIComponent(
   x = 0F,
   y = 0F,
   width = 350F,
-  height = 100F
+  height = calculateHeight(title, description)
 ) {
 
-  private var createdAt = System.currentTimeMillis()
-  private val slideAnim = EaseOutAnimation(150L)
-  private var isClosing = false
-  private val descriptionMaxWidth = width - 30F
+  private var slideInAnim = BounceAnimation(600L)
+  private var slideDownAnim = EaseOutAnimation(400L)
+  private var slideOutAnim = EaseOutAnimation(400L)
 
-  private val wrappedDescription: List<String> by lazy {
-    wrapText(description, descriptionMaxWidth, 12F)
+  var targetY: Float = 0f
+  var previousY: Float = 0f
+
+  private var isExpired: Boolean = false
+  private var expiryTime: Long = 0L
+
+  fun start(currentTime: Long) {
+    slideInAnim = BounceAnimation(600L).apply { start() }
+    slideDownAnim = EaseOutAnimation(200L)
+    slideOutAnim = EaseOutAnimation(400L)
+    expiryTime = currentTime + duration + 600L
+    isExpired = false
   }
 
-  fun getNotificationHeight(): Float =
-    wrappedDescription.size * 16F + 52F
-
-  init {
-    slideAnim.start()
-  }
-
-  @Suppress("SameParameterValue")
-  private fun wrapText(text: String, maxWidth: Float, fontSize: Float): List<String> {
-    val lines = mutableListOf<String>()
-    val words = text.split(" ")
-    var currentLine = ""
-
-    for (word in words) {
-      val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
-      val estimatedWidth = NVGRenderer.textWidth(testLine, fontSize)
-
-      if (estimatedWidth <= maxWidth) {
-        currentLine = testLine
-      } else {
-        if (currentLine.isNotEmpty()) {
-          lines.add(currentLine)
-        }
-        currentLine = word
-      }
-    }
-
-    if (currentLine.isNotEmpty()) {
-      lines.add(currentLine)
-    }
-
-    return lines
-  }
-
-  fun getOffsetX(): Float {
-    return if (isClosing) {
-      slideAnim.get(0F, width)
-    } else {
-      width - slideAnim.get(0F, width)
+  fun checkExpiry(currentTime: Long) {
+    if (!isExpired && currentTime >= expiryTime) {
+      isExpired = true
+      slideOutAnim = EaseOutAnimation(400L).apply { start() }
     }
   }
 
-  fun shouldRemove(): Boolean {
-    val elapsed = System.currentTimeMillis() - createdAt
-    return elapsed > duration + 150L && isClosing && !slideAnim.isAnimating()
-  }
-
-  fun startClosing() {
-    if (!isClosing) {
-      isClosing = true
-      slideAnim.start()
+  fun moveTo(newTargetY: Float) {
+    if (newTargetY != targetY) {
+      previousY = targetY + slideDownAnim.get(previousY - targetY, 0f, false)
+      targetY = newTargetY
+      slideDownAnim = EaseOutAnimation(200L).apply { start() }
     }
   }
 
   override fun render() {
-    val offsetX = getOffsetX()
-    val finalX = x + offsetX
-    val finalHeight = getNotificationHeight()
+    NVGRenderer.rect(0f, 0f, width, height, Color(18, 18, 18).rgb, 5f)
 
-    NVGRenderer.rect(
-      finalX,
-      y,
-      width,
-      finalHeight,
-      Color(25, 25, 25).rgb,
-      8F
+    val titleHeight = NVGRenderer.getWrappedStringHeight(title, width - 30f, 16f)
+    NVGRenderer.drawWrappedString(title, 15f, 15f, width - 30f, 16f, Color(230, 230, 230).rgb)
+
+    NVGRenderer.drawWrappedString(
+      description,
+      15f,
+      15f + titleHeight + 10f,
+      width - 30f,
+      14f,
+      Color(120, 120, 120).rgb,
+      NVGRenderer.interFont
     )
+  }
 
-    NVGRenderer.hollowRect(
-      finalX,
-      y,
-      width,
-      finalHeight,
-      1.5F,
-      Color(61, 94, 149).rgb,
-      8F
-    )
-
-    NVGRenderer.text(
-      title,
-      finalX + 15F,
-      y + 23F,
-      14F,
-      Color(230, 230, 230).rgb
-    )
-
-    var yOffset = 37F
-
-    for (line in wrappedDescription) {
-      NVGRenderer.text(
-        line,
-        finalX + 15F,
-        y + yOffset,
-        12F,
-        Color(179, 179, 179).rgb
-      )
-
-      yOffset += 16F
+  fun xOffset(screenWidth: Float): Float {
+    return if (isExpired) {
+      slideOutAnim.get(screenWidth - width - 10F, screenWidth, false)
+    } else {
+      slideInAnim.get(screenWidth, screenWidth - width - 10F, false)
     }
   }
 
-  fun getCreatedAt(): Long = createdAt
-  fun getDuration(): Long = duration
+  val yOffset: Float
+    get() = targetY + slideDownAnim.get(previousY - targetY, 0f, false)
+
+  fun isDone(): Boolean =
+    isExpired && !slideOutAnim.isAnimating()
+
+  companion object {
+    private fun calculateHeight(title: String, description: String): Float {
+      val titleHeight = NVGRenderer.getWrappedStringHeight(title, 320F, 16F)
+      val descHeight = NVGRenderer.getWrappedStringHeight(description, 320F, 14F)
+      return maxOf(100F, titleHeight + descHeight + 45F)
+    }
+  }
 
 }

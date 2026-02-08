@@ -280,7 +280,7 @@ object NVGRenderer {
     w: Float,
     size: Float,
     color: Int,
-    font: Font,
+    font: Font = interFont,
     lineHeight: Float = 1f,
   ) {
     nvgFontSize(vg, size)
@@ -289,6 +289,17 @@ object NVGRenderer {
     color(color)
     nvgFillColor(vg, nvgColor)
     nvgTextBox(vg, x, y, w, text)
+  }
+
+  @JvmStatic
+  fun getWrappedStringHeight(text: String, maxWidth: Float, fontSize: Float, font: Font = interFont): Float {
+    nvgFontSize(vg, fontSize)
+    nvgFontFaceId(vg, getFontID(font))
+
+    val bounds = FloatArray(4)
+    nvgTextBoxBounds(vg, 0f, 0f, maxWidth, text, bounds)
+
+    return bounds[3] - bounds[1]
   }
 
   @JvmStatic
