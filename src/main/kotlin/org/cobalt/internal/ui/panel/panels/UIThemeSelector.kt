@@ -7,6 +7,7 @@ import org.cobalt.api.ui.theme.ThemeManager
 import org.cobalt.api.ui.theme.impl.CustomTheme
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
+import org.cobalt.internal.ui.animation.ColorAnimation
 import org.cobalt.internal.ui.components.UITopbar
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.screen.UIConfig
@@ -23,7 +24,9 @@ internal class UIThemeSelector : UIPanel(
 ) {
 
   private val topBar = UITopbar("Themes")
-  private val allEntries = listOf(UICreateThemeEntry(), UIImportThemeEntry()) + ThemeManager.getThemes().map { UIThemeEntry(it) }
+  private val createButton = UICreateThemeButton()
+  private val importButton = UIImportThemeButton()
+  private val allEntries = ThemeManager.getThemes().map { UIThemeEntry(it) }
   private var entries = allEntries
 
   private val gridLayout = GridLayout(
@@ -38,6 +41,8 @@ internal class UIThemeSelector : UIPanel(
   init {
     components.addAll(allEntries)
     components.add(topBar)
+    components.add(createButton)
+    components.add(importButton)
   }
 
   override fun render() {
@@ -47,6 +52,16 @@ internal class UIThemeSelector : UIPanel(
       .updateBounds(x, y)
       .render()
 
+    val buttonY = y + (topBar.height / 2) - (createButton.height / 2)
+    val searchBarX = x + width - 320F
+
+    importButton
+      .updateBounds(searchBarX - importButton.width - 10F, buttonY)
+      .render()
+
+    createButton
+      .updateBounds(searchBarX - importButton.width - 10F - createButton.width - 8F, buttonY)
+      .render()
 
     val startY = y + topBar.height
     val visibleHeight = height - topBar.height
@@ -70,69 +85,141 @@ internal class UIThemeSelector : UIPanel(
     return false
   }
 
-  private class UICreateThemeEntry : UIThemeEntry(CustomTheme("Create Theme")) {
+  private class UICreateThemeButton : UIComponent(
+    x = 0F,
+    y = 0F,
+    width = 110F,
+    height = 36F,
+  ) {
+
+    private val colorAnim = ColorAnimation(150L)
+    private var wasHovering = false
+
     override fun render() {
       val hovering = isHoveringOver(x, y, width, height)
 
-      NVGRenderer.rect(x, y, width, height, ThemeManager.currentTheme.panel, 10F)
+      if (hovering != wasHovering) {
+        colorAnim.start()
+        wasHovering = hovering
+      }
 
-      NVGRenderer.hollowRect(
-        x, y, width, height,
-        if (hovering) 2F else 1F,
+      val bgColor = colorAnim.get(
+        ThemeManager.currentTheme.controlBg,
         ThemeManager.currentTheme.accent,
-        10F
+        !hovering
       )
 
-      NVGRenderer.text(
-        "Create Theme",
-        x + 20F,
-        y + 20F,
-        16F,
-        ThemeManager.currentTheme.text
-      )
-
-      val swatchY = y + 50F
-      val swatchSize = 30F
-      val swatchGap = 10F
-
-      NVGRenderer.rect(x + 20F, swatchY, swatchSize, swatchSize, ThemeManager.currentTheme.panel, 5F)
-      NVGRenderer.hollowRect(x + 20F, swatchY, swatchSize, swatchSize, 1F, ThemeManager.currentTheme.textSecondary, 5F)
-
-      NVGRenderer.rect(
-        x + 20F + swatchSize + swatchGap,
-        swatchY,
-        swatchSize,
-        swatchSize,
+      val borderColor = colorAnim.get(
+        ThemeManager.currentTheme.controlBorder,
         ThemeManager.currentTheme.accent,
-        5F
+        !hovering
       )
 
-      NVGRenderer.rect(
-        x + 20F + (swatchSize + swatchGap) * 2,
-        swatchY,
-        swatchSize,
-        swatchSize,
+      val textColor = colorAnim.get(
         ThemeManager.currentTheme.text,
-        5F
+        ThemeManager.currentTheme.textOnAccent,
+        !hovering
+      )
+
+      NVGRenderer.rect(x, y, width, height, bgColor, 5F)
+      NVGRenderer.hollowRect(x, y, width, height, 1.5F, borderColor, 5F)
+
+      val label = "Create"
+      NVGRenderer.text(
+        label,
+        x + width / 2 - NVGRenderer.textWidth(label, 13F) / 2,
+        y + height / 2 - 6.5F,
+        13F,
+        textColor
       )
     }
 
     override fun mouseClicked(button: Int): Boolean {
-      if (button != 0) return false
-
-      if (isHoveringOver(x, y, width, height)) {
-        handleSelection()
+      if (button == 0 && isHoveringOver(x, y, width, height)) {
+        val theme = CustomTheme(name = "Custom ${ThemeManager.getThemes().size + 1}")
+        ThemeManager.registerTheme(theme)
+        ThemeManager.setTheme(theme)
+        UIConfig.swapBodyPanel(UIThemeEditor(theme))
         return true
       }
-
       return false
     }
+  }
 
-    override fun handleSelection() {
-      val theme = CustomTheme(name = "Custom ${ThemeManager.getThemes().size + 1}")
-      ThemeManager.registerTheme(theme)
-      ThemeManager.setTheme(theme)
-      UIConfig.swapBodyPanel(UIThemeEditor(theme))
+  private class UIImportThemeButton : UIComponent(
+    x = 0F,
+    y = 0F,
+    width = 110F,
+    height = 36F,
+  ) {
+
+    private val colorAnim = ColorAnimation(150L)
+    private var wasHovering = false
+
+    override fun render() {
+      val hovering = isHoveringOver(x, y, width, height)
+
+      if (hovering != wasHovering) {
+        colorAnim.start()
+        wasHovering = hovering
+      }
+
+      val bgColor = colorAnim.get(
+        ThemeManager.currentTheme.controlBg,
+        ThemeManager.currentTheme.accentSecondary,
+        !hovering
+      )
+
+      val borderColor = colorAnim.get(
+        ThemeManager.currentTheme.controlBorder,
+        ThemeManager.currentTheme.accentSecondary,
+        !hovering
+      )
+
+      val textColor = colorAnim.get(
+        ThemeManager.currentTheme.text,
+        ThemeManager.currentTheme.textOnAccent,
+        !hovering
+      )
+
+      NVGRenderer.rect(x, y, width, height, bgColor, 5F)
+      NVGRenderer.hollowRect(x, y, width, height, 1.5F, borderColor, 5F)
+
+      val label = "Import"
+      NVGRenderer.text(
+        label,
+        x + width / 2 - NVGRenderer.textWidth(label, 13F) / 2,
+        y + height / 2 - 6.5F,
+        13F,
+        textColor
+      )
+    }
+
+    override fun mouseClicked(button: Int): Boolean {
+      if (button == 0 && isHoveringOver(x, y, width, height)) {
+        val clipboard = Minecraft.getInstance().keyboardHandler.clipboard
+        val theme = ThemeSerializer.fromBase64(clipboard)
+
+        if (theme == null) {
+          NotificationManager.sendNotification("Import Failed", "Invalid theme data in clipboard")
+          return true
+        }
+
+        var finalName = theme.name
+        var counter = 2
+        while (ThemeManager.getThemes().any { it.name == finalName }) {
+          finalName = "${theme.name} ($counter)"
+          counter++
+        }
+        theme.name = finalName
+
+        ThemeManager.registerTheme(theme)
+        ThemeManager.setTheme(theme)
+        NotificationManager.sendNotification("Theme Imported", "'$finalName' imported successfully")
+        UIConfig.swapBodyPanel(UIThemeEditor(theme))
+        return true
+      }
+      return false
     }
   }
 
@@ -209,62 +296,6 @@ internal class UIThemeSelector : UIPanel(
         ThemeManager.setTheme(theme)
     }
 
-  }
-
-  private class UIImportThemeEntry : UIThemeEntry(CustomTheme("Import Theme")) {
-    override fun render() {
-      val hovering = isHoveringOver(x, y, width, height)
-
-      NVGRenderer.rect(x, y, width, height, ThemeManager.currentTheme.panel, 10F)
-      NVGRenderer.hollowRect(
-        x, y, width, height,
-        if (hovering) 2F else 1F,
-        ThemeManager.currentTheme.accentSecondary,
-        10F
-      )
-
-      NVGRenderer.text("Import Theme", x + 20F, y + 20F, 16F, ThemeManager.currentTheme.text)
-      NVGRenderer.text("from clipboard", x + 20F, y + 45F, 12F, ThemeManager.currentTheme.textSecondary)
-
-      val swatchY = y + 60F
-      val swatchSize = 20F
-      val swatchGap = 8F
-
-      NVGRenderer.rect(x + 20F, swatchY, swatchSize, swatchSize, ThemeManager.currentTheme.accentSecondary, 5F)
-      NVGRenderer.rect(x + 20F + swatchSize + swatchGap, swatchY, swatchSize, swatchSize, ThemeManager.currentTheme.info, 5F)
-    }
-
-    override fun mouseClicked(button: Int): Boolean {
-      if (button != 0) return false
-      if (isHoveringOver(x, y, width, height)) {
-        handleSelection()
-        return true
-      }
-      return false
-    }
-
-    override fun handleSelection() {
-      val clipboard = Minecraft.getInstance().keyboardHandler.clipboard
-      val theme = ThemeSerializer.fromBase64(clipboard)
-
-      if (theme == null) {
-        NotificationManager.sendNotification("Import Failed", "Invalid theme data in clipboard")
-        return
-      }
-
-      var finalName = theme.name
-      var counter = 2
-      while (ThemeManager.getThemes().any { it.name == finalName }) {
-        finalName = "${theme.name} ($counter)"
-        counter++
-      }
-      theme.name = finalName
-
-      ThemeManager.registerTheme(theme)
-      ThemeManager.setTheme(theme)
-      NotificationManager.sendNotification("Theme Imported", "'$finalName' imported successfully")
-      UIConfig.swapBodyPanel(UIThemeEditor(theme))
-    }
   }
 
 }
