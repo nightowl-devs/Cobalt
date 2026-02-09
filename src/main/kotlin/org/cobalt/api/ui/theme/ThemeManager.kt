@@ -28,4 +28,18 @@ object ThemeManager {
         return themes
     }
 
+    fun unregisterTheme(theme: Theme): Boolean {
+        // Prevent deleting built-in themes
+        if (theme.name == "Dark" || theme.name == "Light") return false
+
+        val removed = themes.removeIf { it.name == theme.name }
+
+        // If deleted theme was current, switch to DarkTheme
+        if (removed && currentTheme.name == theme.name) {
+            currentTheme = themes.first { it.name == "Dark" }
+        }
+
+        return removed
+    }
+
 }
