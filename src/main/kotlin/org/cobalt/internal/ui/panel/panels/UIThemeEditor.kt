@@ -1,9 +1,11 @@
 package org.cobalt.internal.ui.panel.panels
 
 import java.awt.Color
+import net.minecraft.client.Minecraft
 import org.cobalt.api.module.setting.impl.ColorSetting
 import org.cobalt.api.module.setting.impl.InfoSetting
 import org.cobalt.api.module.setting.impl.TextSetting
+import org.cobalt.api.notification.NotificationManager
 import org.cobalt.api.ui.theme.ThemeManager
 import org.cobalt.api.ui.theme.ThemePalette
 import org.cobalt.api.ui.theme.impl.CustomTheme
@@ -16,6 +18,7 @@ import org.cobalt.internal.ui.components.settings.UIInfoSetting
 import org.cobalt.internal.ui.components.settings.UITextSetting
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.screen.UIConfig
+import org.cobalt.internal.ui.theme.ThemeSerializer
 import org.cobalt.internal.ui.util.GridLayout
 import org.cobalt.internal.ui.util.ScrollHandler
 import org.cobalt.internal.ui.util.isHoveringOver
@@ -51,6 +54,13 @@ internal class UIThemeEditor(
   private val generateButton = UIGenerateButton {
     applyPalette()
   }
+
+  private val copyButton = UICopyButton { theme }
+
+  private val deleteButton = UIDeleteButton(
+    getTheme = { theme },
+    onDelete = { UIConfig.swapBodyPanel(UIThemeSelector()) }
+  )
 
   private data class ThemeColorField(
     val label: String,
@@ -148,6 +158,8 @@ internal class UIThemeEditor(
     components.add(UIInfoSetting(InfoSetting("Palette", "")))
     components.addAll(paletteEditors)
     components.add(generateButton)
+    components.add(copyButton)
+    components.add(deleteButton)
     components.addAll(colorEditors)
   }
 
@@ -170,6 +182,8 @@ internal class UIThemeEditor(
                listOf(UIInfoSetting(InfoSetting("Palette", ""))) + 
                paletteEditors +
                listOf(generateButton) +
+               listOf(copyButton) +
+               listOf(deleteButton) +
                colorEditors
                
     scrollHandler.setMaxScroll(layout.contentHeight(list.size) + 20F, visibleHeight)
@@ -306,6 +320,99 @@ internal class UIThemeEditor(
     override fun mouseClicked(button: Int): Boolean {
       if (button == 0 && isHoveringOver(x, y, width, height)) {
         onClick()
+        return true
+      }
+      return false
+    }
+  }
+
+  private class UICopyButton(
+    private val getTheme: () -> CustomTheme
+  ) : UIComponent(
+    x = 0F,
+    y = 0F,
+    width = 627.5F,
+    height = 40F
+  ) {
+    override fun render() {
+      val isHovering = isHoveringOver(x, y, width, height)
+      val color = if (isHovering) ThemeManager.currentTheme.accent else ThemeManager.currentTheme.controlBg
+
+      NVGRenderer.rect(x, y, width, height, color, 5F)
+      NVGRenderer.hollowRect(x, y, width, height, 1.5F, ThemeManager.currentTheme.controlBorder, 5F)
+
+      val label = "Copy Theme to Clipboard"
+      NVGRenderer.text(
+        label,
+        x + width / 2 - NVGRenderer.textWidth(label, 14F) / 2,
+        y + height / 2 - 7F,
+        14F,
+        ThemeManager.currentTheme.text
+      )
+    }
+
+    override fun mouseClicked(button: Int): Boolean {
+      if (button == 0 && isHoveringOver(x, y, width, height)) {
+        val encoded = ThemeSerializer.toBase64(getTheme())
+        Minecraft.getInstance().keyboardHandler.clipboard = encoded
+        NotificationManager.sendNotification("Theme Copied", "Theme copied to clipboard")
+        return true
+      }
+      return false
+    }
+  }
+
+  private class UIDeleteButton(
+    private val getTheme: () -> CustomTheme,
+    private val onDelete: () -> Unit
+  ) : UIComponent(
+    x = 0F,
+    y = 0F,
+    width = 627.5F,
+    height = 40F
+  ) {
+    private var confirmPending = false
+    private var confirmTime = 0L
+
+    override fun render() {
+      val isHovering = isHoveringOver(x, y, width, height)
+      val errorColor = ThemeManager.currentTheme.error
+      val color = when {
+        confirmPending -> errorColor
+        isHovering -> Color(errorColor).darker().rgb
+        else -> ThemeManager.currentTheme.controlBg
+      }
+
+      NVGRenderer.rect(x, y, width, height, color, 5F)
+      NVGRenderer.hollowRect(x, y, width, height, 1.5F, errorColor, 5F)
+
+      val label = if (confirmPending) "Click again to confirm delete" else "Delete Theme"
+      NVGRenderer.text(
+        label,
+        x + width / 2 - NVGRenderer.textWidth(label, 14F) / 2,
+        y + height / 2 - 7F,
+        14F,
+        if (confirmPending) ThemeManager.currentTheme.textOnAccent else ThemeManager.currentTheme.text
+      )
+
+      if (confirmPending && System.currentTimeMillis() - confirmTime > 3000) {
+        confirmPending = false
+      }
+    }
+
+    override fun mouseClicked(button: Int): Boolean {
+      if (button == 0 && isHoveringOver(x, y, width, height)) {
+        if (confirmPending) {
+          val theme = getTheme()
+          if (ThemeManager.unregisterTheme(theme)) {
+            NotificationManager.sendNotification("Theme Deleted", "'${theme.name}' has been deleted")
+            onDelete()
+          }
+          confirmPending = false
+        } else {
+          confirmPending = true
+          confirmTime = System.currentTimeMillis()
+        }
         return true
       }
       return false

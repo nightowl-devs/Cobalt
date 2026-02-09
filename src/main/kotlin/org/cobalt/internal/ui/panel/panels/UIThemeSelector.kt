@@ -1,5 +1,7 @@
 package org.cobalt.internal.ui.panel.panels
 
+import net.minecraft.client.Minecraft
+import org.cobalt.api.notification.NotificationManager
 import org.cobalt.api.ui.theme.Theme
 import org.cobalt.api.ui.theme.ThemeManager
 import org.cobalt.api.ui.theme.impl.CustomTheme
@@ -8,6 +10,7 @@ import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.components.UITopbar
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.screen.UIConfig
+import org.cobalt.internal.ui.theme.ThemeSerializer
 import org.cobalt.internal.ui.util.GridLayout
 import org.cobalt.internal.ui.util.ScrollHandler
 import org.cobalt.internal.ui.util.isHoveringOver
@@ -20,7 +23,7 @@ internal class UIThemeSelector : UIPanel(
 ) {
 
   private val topBar = UITopbar("Themes")
-  private val allEntries = listOf(UICreateThemeEntry()) + ThemeManager.getThemes().map { UIThemeEntry(it) }
+  private val allEntries = listOf(UICreateThemeEntry(), UIImportThemeEntry()) + ThemeManager.getThemes().map { UIThemeEntry(it) }
   private var entries = allEntries
 
   private val gridLayout = GridLayout(
@@ -206,6 +209,62 @@ internal class UIThemeSelector : UIPanel(
       }
     }
 
+  }
+
+  private class UIImportThemeEntry : UIThemeEntry(CustomTheme("Import Theme")) {
+    override fun render() {
+      val hovering = isHoveringOver(x, y, width, height)
+
+      NVGRenderer.rect(x, y, width, height, ThemeManager.currentTheme.panel, 10F)
+      NVGRenderer.hollowRect(
+        x, y, width, height,
+        if (hovering) 2F else 1F,
+        ThemeManager.currentTheme.accentSecondary,
+        10F
+      )
+
+      NVGRenderer.text("Import Theme", x + 20F, y + 20F, 16F, ThemeManager.currentTheme.text)
+      NVGRenderer.text("from clipboard", x + 20F, y + 45F, 12F, ThemeManager.currentTheme.textSecondary)
+
+      val swatchY = y + 60F
+      val swatchSize = 20F
+      val swatchGap = 8F
+
+      NVGRenderer.rect(x + 20F, swatchY, swatchSize, swatchSize, ThemeManager.currentTheme.accentSecondary, 5F)
+      NVGRenderer.rect(x + 20F + swatchSize + swatchGap, swatchY, swatchSize, swatchSize, ThemeManager.currentTheme.info, 5F)
+    }
+
+    override fun mouseClicked(button: Int): Boolean {
+      if (button != 0) return false
+      if (isHoveringOver(x, y, width, height)) {
+        handleSelection()
+        return true
+      }
+      return false
+    }
+
+    override fun handleSelection() {
+      val clipboard = Minecraft.getInstance().keyboardHandler.clipboard
+      val theme = ThemeSerializer.fromBase64(clipboard)
+
+      if (theme == null) {
+        NotificationManager.sendNotification("Import Failed", "Invalid theme data in clipboard")
+        return
+      }
+
+      var finalName = theme.name
+      var counter = 2
+      while (ThemeManager.getThemes().any { it.name == finalName }) {
+        finalName = "${theme.name} ($counter)"
+        counter++
+      }
+      theme.name = finalName
+
+      ThemeManager.registerTheme(theme)
+      ThemeManager.setTheme(theme)
+      NotificationManager.sendNotification("Theme Imported", "'$finalName' imported successfully")
+      UIConfig.swapBodyPanel(UIThemeEditor(theme))
+    }
   }
 
 }

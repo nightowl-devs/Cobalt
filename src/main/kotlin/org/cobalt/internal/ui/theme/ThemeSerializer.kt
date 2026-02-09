@@ -1,9 +1,29 @@
 package org.cobalt.internal.ui.theme
 
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import java.util.Base64
 import org.cobalt.api.ui.theme.impl.CustomTheme
 
 internal object ThemeSerializer {
+
+  private const val THEME_PREFIX = "COBALT_THEME:"
+
+  fun toBase64(theme: CustomTheme): String {
+    val json = toJson(theme).toString()
+    val encoded = Base64.getEncoder().encodeToString(json.toByteArray(Charsets.UTF_8))
+    return "$THEME_PREFIX$encoded"
+  }
+
+  fun fromBase64(data: String): CustomTheme? {
+    return runCatching {
+      require(data.startsWith(THEME_PREFIX)) { "Invalid theme data format" }
+      val encoded = data.removePrefix(THEME_PREFIX)
+      val decoded = Base64.getDecoder().decode(encoded)
+      val json = JsonParser.parseString(String(decoded, Charsets.UTF_8)).asJsonObject
+      fromJson(json)
+    }.getOrNull()
+  }
 
   fun toJson(theme: CustomTheme): JsonObject = JsonObject().apply {
     addProperty("name", theme.name)
