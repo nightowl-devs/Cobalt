@@ -91,10 +91,10 @@ data class ThemePalette(
     theme.tooltipBorder = surface.adjust(2.0f)
     theme.tooltipText = text
 
-    theme.notificationBackground = surface
+    theme.notificationBackground = background
     theme.notificationBorder = primary
     theme.notificationText = text
-    theme.notificationTextSecondary = textSecondary
+    theme.notificationTextSecondary = theme.textDisabled
 
     theme.selectionText = text
     theme.searchPlaceholderText = text.alpha(128)

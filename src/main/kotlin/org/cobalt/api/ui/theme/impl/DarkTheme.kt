@@ -44,10 +44,10 @@ class DarkTheme : Theme {
     override val tooltipBorder = Color(42, 42, 42).rgb
     override val tooltipText = Color(230, 230, 230).rgb
 
-    override val notificationBackground = Color(25, 25, 25).rgb
+    override val notificationBackground = Color(18, 18, 18).rgb
     override val notificationBorder = Color(61, 94, 149).rgb
     override val notificationText = Color(230, 230, 230).rgb
-    override val notificationTextSecondary = Color(179, 179, 179).rgb
+    override val notificationTextSecondary = Color(120, 120, 120).rgb
 
     override val infoBackground = Color(61, 94, 149, 25).rgb
     override val infoBorder = Color(61, 94, 149, 150).rgb

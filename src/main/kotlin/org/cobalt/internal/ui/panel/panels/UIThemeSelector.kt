@@ -201,7 +201,7 @@ internal class UIThemeSelector : UIPanel(
         val theme = ThemeSerializer.fromBase64(clipboard)
 
         if (theme == null) {
-          NotificationManager.sendNotification("Import Failed", "Invalid theme data in clipboard")
+          NotificationManager.queue("Import Failed", "Invalid theme data in clipboard")
           return true
         }
 
@@ -215,7 +215,7 @@ internal class UIThemeSelector : UIPanel(
 
         ThemeManager.registerTheme(theme)
         ThemeManager.setTheme(theme)
-        NotificationManager.sendNotification("Theme Imported", "'$finalName' imported successfully")
+        NotificationManager.queue("Theme Imported", "'$finalName' imported successfully")
         UIConfig.swapBodyPanel(UIThemeEditor(theme))
         return true
       }

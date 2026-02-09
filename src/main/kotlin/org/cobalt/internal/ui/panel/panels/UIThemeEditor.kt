@@ -178,14 +178,14 @@ internal class UIThemeEditor(
     val startY = y + topBar.height + backButton.height + 20F
     val visibleHeight = height - (topBar.height + backButton.height + 20F)
 
-    val list = listOf<UIComponent>(nameEditor) + 
-               listOf(UIInfoSetting(InfoSetting("Palette", ""))) + 
+    val list = listOf<UIComponent>(nameEditor) +
+               listOf(UIInfoSetting(InfoSetting("Palette", ""))) +
                paletteEditors +
                listOf(generateButton) +
                listOf(copyButton) +
                listOf(deleteButton) +
                colorEditors
-               
+
     scrollHandler.setMaxScroll(layout.contentHeight(list.size) + 20F, visibleHeight)
     NVGRenderer.pushScissor(x, startY, width, visibleHeight)
 
@@ -307,7 +307,7 @@ internal class UIThemeEditor(
 
       NVGRenderer.rect(x, y, width, height, color, 5F)
       NVGRenderer.hollowRect(x, y, width, height, 1.5F, borderColor, 5F)
-      
+
       NVGRenderer.text(
         "Generate from Palette",
         x + width / 2 - NVGRenderer.textWidth("Generate from Palette", 14F) / 2,
@@ -355,7 +355,7 @@ internal class UIThemeEditor(
       if (button == 0 && isHoveringOver(x, y, width, height)) {
         val encoded = ThemeSerializer.toBase64(getTheme())
         Minecraft.getInstance().keyboardHandler.clipboard = encoded
-        NotificationManager.sendNotification("Theme Copied", "Theme copied to clipboard")
+        NotificationManager.queue("Theme Copied", "Theme copied to clipboard")
         return true
       }
       return false
@@ -405,7 +405,7 @@ internal class UIThemeEditor(
         if (confirmPending) {
           val theme = getTheme()
           if (ThemeManager.unregisterTheme(theme)) {
-            NotificationManager.sendNotification("Theme Deleted", "'${theme.name}' has been deleted")
+            NotificationManager.queue("Theme Deleted", "'${theme.name}' has been deleted")
             onDelete()
           }
           confirmPending = false
