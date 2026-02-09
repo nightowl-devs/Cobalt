@@ -9,6 +9,9 @@ import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.animation.ColorAnimation
 import org.cobalt.internal.ui.components.UITopbar
+import org.cobalt.internal.ui.components.tooltips.TooltipPosition
+import org.cobalt.internal.ui.components.tooltips.UITooltip
+import org.cobalt.internal.ui.components.tooltips.impl.UITextTooltip
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.screen.UIConfig
 import org.cobalt.internal.ui.theme.ThemeSerializer
@@ -88,12 +91,17 @@ internal class UIThemeSelector : UIPanel(
   private class UICreateThemeButton : UIComponent(
     x = 0F,
     y = 0F,
-    width = 110F,
+    width = 36F,
     height = 36F,
   ) {
 
     private val colorAnim = ColorAnimation(150L)
     private var wasHovering = false
+
+    private val tooltip = UITooltip(
+      content = { UITextTooltip("Create Theme") },
+      position = TooltipPosition.BELOW
+    )
 
     override fun render() {
       val hovering = isHoveringOver(x, y, width, height)
@@ -115,7 +123,7 @@ internal class UIThemeSelector : UIPanel(
         !hovering
       )
 
-      val textColor = colorAnim.get(
+      val iconColor = colorAnim.get(
         ThemeManager.currentTheme.text,
         ThemeManager.currentTheme.textOnAccent,
         !hovering
@@ -124,14 +132,16 @@ internal class UIThemeSelector : UIPanel(
       NVGRenderer.rect(x, y, width, height, bgColor, 5F)
       NVGRenderer.hollowRect(x, y, width, height, 1.5F, borderColor, 5F)
 
-      val label = "Create"
-      NVGRenderer.text(
-        label,
-        x + width / 2 - NVGRenderer.textWidth(label, 13F) / 2,
-        y + height / 2 - 6.5F,
-        13F,
-        textColor
+      val iconSize = 18F
+      NVGRenderer.image(
+        plusIcon,
+        x + width / 2F - iconSize / 2F,
+        y + height / 2F - iconSize / 2F,
+        iconSize, iconSize, 0F,
+        iconColor
       )
+
+      tooltip.updateBounds(x, y, width, height)
     }
 
     override fun mouseClicked(button: Int): Boolean {
@@ -144,17 +154,26 @@ internal class UIThemeSelector : UIPanel(
       }
       return false
     }
+
+    companion object {
+      private val plusIcon = NVGRenderer.createImage("/assets/cobalt/icons/plus.svg")
+    }
   }
 
   private class UIImportThemeButton : UIComponent(
     x = 0F,
     y = 0F,
-    width = 110F,
+    width = 36F,
     height = 36F,
   ) {
 
     private val colorAnim = ColorAnimation(150L)
     private var wasHovering = false
+
+    private val tooltip = UITooltip(
+      content = { UITextTooltip("Import Theme") },
+      position = TooltipPosition.BELOW
+    )
 
     override fun render() {
       val hovering = isHoveringOver(x, y, width, height)
@@ -176,7 +195,7 @@ internal class UIThemeSelector : UIPanel(
         !hovering
       )
 
-      val textColor = colorAnim.get(
+      val iconColor = colorAnim.get(
         ThemeManager.currentTheme.text,
         ThemeManager.currentTheme.textOnAccent,
         !hovering
@@ -185,14 +204,16 @@ internal class UIThemeSelector : UIPanel(
       NVGRenderer.rect(x, y, width, height, bgColor, 5F)
       NVGRenderer.hollowRect(x, y, width, height, 1.5F, borderColor, 5F)
 
-      val label = "Import"
-      NVGRenderer.text(
-        label,
-        x + width / 2 - NVGRenderer.textWidth(label, 13F) / 2,
-        y + height / 2 - 6.5F,
-        13F,
-        textColor
+      val iconSize = 18F
+      NVGRenderer.image(
+        importIcon,
+        x + width / 2F - iconSize / 2F,
+        y + height / 2F - iconSize / 2F,
+        iconSize, iconSize, 0F,
+        iconColor
       )
+
+      tooltip.updateBounds(x, y, width, height)
     }
 
     override fun mouseClicked(button: Int): Boolean {
@@ -220,6 +241,10 @@ internal class UIThemeSelector : UIPanel(
         return true
       }
       return false
+    }
+
+    companion object {
+      private val importIcon = NVGRenderer.createImage("/assets/cobalt/icons/import.svg")
     }
   }
 
