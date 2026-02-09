@@ -7,6 +7,7 @@ import java.lang.reflect.Method
 
 object ReflectionUtils {
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> getField(instance: Any, fieldName: String): T {
     val field = getField(instance::class.java, fieldName)
@@ -28,7 +29,7 @@ object ReflectionUtils {
     while (current != null) {
       try {
         return current.getDeclaredField(fieldName)
-      } catch (ignored: NoSuchFieldException) {
+      } catch (_: NoSuchFieldException) {
       }
 
       current = current.superclass
@@ -37,6 +38,7 @@ object ReflectionUtils {
     throw RuntimeException("Field $fieldName not found in class $clazz")
   }
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> invokeMethod(instance: Any, methodName: String, paramTypes: Array<Class<*>>, vararg args: Any?): T {
     val method = getMethod(instance::class.java, methodName, paramTypes)
@@ -51,7 +53,7 @@ object ReflectionUtils {
     while (current != null) {
       try {
         return current.getDeclaredMethod(methodName, *paramTypes)
-      } catch (ignored: NoSuchMethodException) {
+      } catch (_: NoSuchMethodException) {
       }
 
       current = current.superclass
@@ -60,6 +62,7 @@ object ReflectionUtils {
     throw RuntimeException("Method $methodName not found in class $clazz")
   }
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> getStaticField(clazz: Class<*>, fieldName: String): T {
     val field = getField(clazz, fieldName)
