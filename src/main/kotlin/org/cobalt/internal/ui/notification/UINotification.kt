@@ -1,6 +1,6 @@
 package org.cobalt.internal.ui.notification
 
-import java.awt.Color
+import org.cobalt.api.ui.theme.ThemeManager
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.animation.BounceAnimation
@@ -51,10 +51,10 @@ internal class UINotification(
   }
 
   override fun render() {
-    NVGRenderer.rect(0f, 0f, width, height, Color(18, 18, 18).rgb, 5f)
+    NVGRenderer.rect(0f, 0f, width, height, ThemeManager.currentTheme.notificationBackground, 5f)
 
     val titleHeight = NVGRenderer.getWrappedStringHeight(title, width - 30f, 16f)
-    NVGRenderer.drawWrappedString(title, 15f, 15f, width - 30f, 16f, Color(230, 230, 230).rgb)
+    NVGRenderer.drawWrappedString(title, 15f, 15f, width - 30f, 16f, ThemeManager.currentTheme.notificationText)
 
     NVGRenderer.drawWrappedString(
       description,
@@ -62,7 +62,7 @@ internal class UINotification(
       15f + titleHeight + 10f,
       width - 30f,
       14f,
-      Color(120, 120, 120).rgb,
+      ThemeManager.currentTheme.notificationTextSecondary,
       NVGRenderer.interFont
     )
   }
