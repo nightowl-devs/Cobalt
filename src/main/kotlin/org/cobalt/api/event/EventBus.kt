@@ -82,7 +82,7 @@ object EventBus {
   fun post(event: Event): Event {
     val eventClass = event::class.java
 
-    classCache.get(eventClass).forEach { clazz ->
+    classCache[eventClass].forEach { clazz ->
       listeners[clazz]?.forEach { data -> data.invoker.accept(event) }
     }
 
@@ -110,85 +110,8 @@ object EventBus {
         )
 
       callSite.target.invokeExact() as Consumer<Event>
-    } catch (e: Throwable) {
+    } catch (_: Throwable) {
       Consumer { evt -> method.invoke(instance, evt) }
-    }
-  }
-
-  @JvmStatic
-  fun discoverAndRegister(packageStr: String, excludeFiles: Set<Class<*>> = emptySet()) {
-    val path = packageStr.replace('.', '/')
-    val resources = Thread.currentThread().contextClassLoader.getResources(path)
-    val classes = mutableSetOf<Class<*>>()
-
-    fun findClassesInDir(dir: File, packageName: String) {
-      if (!dir.exists()) return
-
-      dir.listFiles()?.forEach { file ->
-        if (file.isDirectory) {
-          findClassesInDir(file, "$packageName.${file.name}")
-        } else if (file.name.endsWith(".class")) {
-          val className = "$packageName.${file.name.substring(0, file.name.length - 6)}"
-          try {
-            classes.add(Class.forName(className))
-          } catch (_: ClassNotFoundException) {
-          }
-        }
-      }
-    }
-
-    while (resources.hasMoreElements()) {
-      val resource = resources.nextElement()
-      val filePath = URLDecoder.decode(resource.file, "UTF-8")
-
-      if (resource.protocol == "file") {
-        findClassesInDir(File(filePath), packageStr)
-      } else if (resource.protocol == "jar") {
-        val jarPath = filePath.substring(5, filePath.indexOf("!"))
-        try {
-          ZipFile(jarPath).use { zip ->
-            val entries = zip.entries()
-            while (entries.hasMoreElements()) {
-              val entry = entries.nextElement()
-              val name = entry.name
-
-              if (name.startsWith(path) && name.endsWith(".class") && !entry.isDirectory) {
-                val className = name.substring(0, name.length - 6).replace('/', '.')
-                try {
-                  classes.add(Class.forName(className))
-                } catch (_: ClassNotFoundException) {
-                }
-              }
-            }
-          }
-        } catch (_: IOException) {
-        }
-      }
-    }
-
-    for (clazz in classes) {
-      if (clazz in excludeFiles) continue
-      if (clazz.declaredMethods.none { it.isAnnotationPresent(SubscribeEvent::class.java) }) {
-        continue
-      }
-
-      try {
-        val instance =
-          when {
-            clazz.declaredFields.any { it.name == "INSTANCE" } -> {
-              clazz.getDeclaredField("INSTANCE").apply { trySetAccessible() }.get(null)
-            }
-
-            else -> {
-              val constructor = clazz.getDeclaredConstructor()
-              constructor.trySetAccessible()
-              constructor.newInstance()
-            }
-          }
-
-        register(instance)
-      } catch (_: Exception) {
-      }
     }
   }
 
@@ -207,7 +130,6 @@ object EventBus {
   fun <T : Event> registerEvent(eventClass: Class<T>, listener: (T) -> Unit) {
     dynamicRunnable.computeIfAbsent(eventClass) { mutableListOf() }.add { event -> listener(event as T) }
   }
-
 
   @JvmStatic
   private fun handleDynamic(event: Event) {

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * @author StellariumMC
  */
 @Mixin(GlStateManager.class)
-public class TextureTracking_GlStateManagerMixin {
+public class GlStateManagerMixin {
 
   @Inject(method = "_bindTexture", at = @At("HEAD"), remap = false)
   private static void onBindTexture(int texture, CallbackInfo callbackInfo) {

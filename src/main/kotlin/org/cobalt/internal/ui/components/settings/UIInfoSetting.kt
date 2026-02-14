@@ -64,6 +64,7 @@ internal class UIInfoSetting(private val setting: InfoSetting) : UIComponent(
       val icon = NVGRenderer.createImage(getIcon())
       NVGRenderer.image(icon, iconX, iconY, iconSize, iconSize, colorMask = iconColor)
     } catch (_: Exception) {
+      // If icon fails to load, just skip it
     }
 
     if (setting.name.isNotEmpty()) {

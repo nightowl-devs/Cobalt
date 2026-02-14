@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CrashReport.class)
-public abstract class AddonList_CrashReportMixin {
+public abstract class CrashReportMixin {
 
   @Inject(method = "getDetails(Ljava/lang/StringBuilder;)V", at = @At("HEAD"))
   private void addAddonInfo(StringBuilder crashReportBuilder, CallbackInfo callbackInfo) {

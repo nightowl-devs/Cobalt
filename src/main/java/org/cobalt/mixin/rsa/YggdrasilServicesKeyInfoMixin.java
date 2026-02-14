@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = YggdrasilServicesKeyInfo.class, remap = false)
-public class RSANuker_YggdrasilServicesKeyInfoMixin {
+public class YggdrasilServicesKeyInfoMixin {
 
   @Redirect(
     method = "validateProperty(Lcom/mojang/authlib/properties/Property;)Z",
