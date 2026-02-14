@@ -17,12 +17,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TextureTracking_GlStateManagerMixin {
 
   @Inject(method = "_bindTexture", at = @At("HEAD"), remap = false)
-  private static void onBindTexture(int texture, CallbackInfo ci) {
+  private static void onBindTexture(int texture, CallbackInfo callbackInfo) {
     TextureTracker.setPrevBoundTexture(texture);
   }
 
   @Inject(method = "_activeTexture", at = @At("HEAD"), remap = false)
-  private static void onActiveTexture(int texture, CallbackInfo ci) {
+  private static void onActiveTexture(int texture, CallbackInfo callbackInfo) {
     TextureTracker.setPrevActiveTexture(texture);
   }
 

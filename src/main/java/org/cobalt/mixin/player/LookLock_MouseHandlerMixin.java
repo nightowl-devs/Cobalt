@@ -20,28 +20,27 @@ public abstract class LookLock_MouseHandlerMixin {
   public abstract void releaseMouse();
 
   @Inject(method = "turnPlayer", at = @At("HEAD"), cancellable = true)
-  private void onUpdateMouse(CallbackInfo ci) {
+  private void onUpdateMouse(CallbackInfo callbackInfo) {
     if (MovementManager.isLookLocked) {
-      ci.cancel();
+      callbackInfo.cancel();
     }
   }
 
-  // might as well fit in ungrab mouse here as well
   @Inject(method = "isMouseGrabbed", at = @At("HEAD"), cancellable = true)
-  private void onIsCursorLocked(CallbackInfoReturnable<Boolean> cir) {
+  private void onIsCursorLocked(CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
     if (MouseUtils.isMouseUngrabbed()) {
       if (this.mouseGrabbed) {
         this.releaseMouse();
       }
 
-      cir.setReturnValue(false);
+      callbackInfoReturnable.setReturnValue(false);
     }
   }
 
   @Inject(method = "grabMouse", at = @At("HEAD"), cancellable = true)
-  private void onLockCursor(CallbackInfo ci) {
+  private void onLockCursor(CallbackInfo callbackInfo) {
     if (MouseUtils.isMouseUngrabbed()) {
-      ci.cancel();
+      callbackInfo.cancel();
     }
   }
 

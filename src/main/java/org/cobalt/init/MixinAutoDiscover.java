@@ -41,8 +41,7 @@ public class MixinAutoDiscover implements IMixinConfigPlugin {
         }
       }
     } catch (IOException | URISyntaxException e) {
-      System.err.println("Failed to auto-discover mixins: " + e.getMessage());
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 

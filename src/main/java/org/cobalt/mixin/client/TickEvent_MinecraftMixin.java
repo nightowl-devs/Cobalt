@@ -11,13 +11,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class TickEvent_MinecraftMixin {
 
   @Inject(at = @At("HEAD"), method = "tick")
-  private void onStartTick(CallbackInfo info) {
-    new TickEvent.Start().post();
+  private void onStartTick(CallbackInfo callbackInfo) {
+    TickEvent.Start startTickEvent = new TickEvent.Start();
+    startTickEvent.post();
   }
 
   @Inject(at = @At("RETURN"), method = "tick")
-  private void onEndTick(CallbackInfo info) {
-    new TickEvent.End().post();
+  private void onEndTick(CallbackInfo callbackInfo) {
+    TickEvent.End endTickEvent = new TickEvent.End();
+    endTickEvent.post();
   }
 
 }
