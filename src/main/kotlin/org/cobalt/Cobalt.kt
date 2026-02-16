@@ -14,6 +14,7 @@ import org.cobalt.internal.loader.AddonLoader
 @Suppress("UNUSED")
 object Cobalt : ClientModInitializer {
 
+
   override fun onInitializeClient() {
     AddonLoader.getAddons().map { it.second }.forEach {
       it.onLoad()
