@@ -15,12 +15,6 @@
 
 </div>
 
-> [!NOTE]
-> This project was made possible thanks to:
-> - [Nebula Client](https://nebulaclient.net) (UI Design)
-> - [Odin-Fabric](https://github.com/odtheking/Odin) (NVG Impl & Config System)
-> - [Vexel](https://github.com/StellariumMC/vexel) (Texture Tracking)
-
 ## About The Project
 
 Cobalt is an open-source Minecraft Fabric project focused on providing a modular scripting and automation framework with an emphasis on extensibility. It is designed to be easy to experiment with, extend through addons, and adapt to different use cases without locking users into a rigid structure.
