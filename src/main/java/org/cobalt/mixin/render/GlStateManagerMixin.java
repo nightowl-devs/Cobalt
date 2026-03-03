@@ -7,12 +7,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Implementation from vexel by StellariumMC
- * Original work: <a href="https://github.com/StellariumMC/vexel">...</a>
- *
- * @author StellariumMC
- */
 @Mixin(GlStateManager.class)
 public class GlStateManagerMixin {
 
