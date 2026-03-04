@@ -7,22 +7,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Implementation from vexel by StellariumMC
- * Original work: <a href="https://github.com/StellariumMC/vexel">...</a>
- *
- * @author StellariumMC
- */
 @Mixin(GlStateManager.class)
-public class TextureTracking_GlStateManagerMixin {
+public class GlStateManagerMixin {
 
   @Inject(method = "_bindTexture", at = @At("HEAD"), remap = false)
-  private static void onBindTexture(int texture, CallbackInfo ci) {
+  private static void onBindTexture(int texture, CallbackInfo callbackInfo) {
     TextureTracker.setPrevBoundTexture(texture);
   }
 
   @Inject(method = "_activeTexture", at = @At("HEAD"), remap = false)
-  private static void onActiveTexture(int texture, CallbackInfo ci) {
+  private static void onActiveTexture(int texture, CallbackInfo callbackInfo) {
     TextureTracker.setPrevActiveTexture(texture);
   }
 

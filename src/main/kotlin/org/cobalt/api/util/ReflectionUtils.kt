@@ -7,18 +7,19 @@ import java.lang.reflect.Method
 
 object ReflectionUtils {
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> getField(instance: Any, fieldName: String): T {
     val field = getField(instance::class.java, fieldName)
     field.makeAccessible()
-    return field.get(instance) as T
+    return field[instance] as T
   }
 
   @JvmStatic
   fun setField(instance: Any, fieldName: String, value: Any?) {
     val field = getField(instance::class.java, fieldName)
     field.makeAccessible()
-    field.set(instance, value)
+    field[instance] = value
   }
 
   @JvmStatic
@@ -28,7 +29,8 @@ object ReflectionUtils {
     while (current != null) {
       try {
         return current.getDeclaredField(fieldName)
-      } catch (ignored: NoSuchFieldException) {
+      } catch (_: NoSuchFieldException) {
+        // Ignore and check superclass
       }
 
       current = current.superclass
@@ -37,6 +39,7 @@ object ReflectionUtils {
     throw RuntimeException("Field $fieldName not found in class $clazz")
   }
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> invokeMethod(instance: Any, methodName: String, paramTypes: Array<Class<*>>, vararg args: Any?): T {
     val method = getMethod(instance::class.java, methodName, paramTypes)
@@ -51,7 +54,8 @@ object ReflectionUtils {
     while (current != null) {
       try {
         return current.getDeclaredMethod(methodName, *paramTypes)
-      } catch (ignored: NoSuchMethodException) {
+      } catch (_: NoSuchMethodException) {
+        // Ignore and check superclass
       }
 
       current = current.superclass
@@ -60,18 +64,19 @@ object ReflectionUtils {
     throw RuntimeException("Method $methodName not found in class $clazz")
   }
 
+  @Suppress("UNCHECKED_CAST")
   @JvmStatic
   fun <T> getStaticField(clazz: Class<*>, fieldName: String): T {
     val field = getField(clazz, fieldName)
     field.makeAccessible()
-    return field.get(null) as T
+    return field[null] as T
   }
 
   @JvmStatic
   fun setStaticField(clazz: Class<*>, fieldName: String, value: Any?) {
     val field = getField(clazz, fieldName)
     field.makeAccessible()
-    field.set(null, value)
+    field[null] = value
   }
 
   @JvmStatic

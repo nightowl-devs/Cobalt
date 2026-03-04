@@ -1,3 +1,41 @@
+/*
+ * BSD 3-Clause License
+ *
+ * Copyright (c) 2023-2025, odtheking
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Portions of this file are derived from OdinFabric
+ * Copyright (c) odtheking
+ * Licensed under BSD-3-Clause
+ *
+ * Modifications and additions:
+ * Licensed under GPL-3.0
+ */
+
 package org.cobalt.api.util.ui
 
 import com.mojang.blaze3d.opengl.GlDevice
@@ -9,11 +47,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 import net.minecraft.client.Minecraft
-import org.cobalt.api.util.ui.NVGRenderer.image
-import org.cobalt.api.util.ui.NVGRenderer.pop
-import org.cobalt.api.util.ui.NVGRenderer.popScissor
-import org.cobalt.api.util.ui.NVGRenderer.push
-import org.cobalt.api.util.ui.NVGRenderer.text
 import org.cobalt.api.util.ui.helper.Font
 import org.cobalt.api.util.ui.helper.Gradient
 import org.cobalt.api.util.ui.helper.Image
@@ -28,12 +61,6 @@ import org.lwjgl.stb.STBImage.stbi_load_from_memory
 import org.lwjgl.system.MemoryUtil.memAlloc
 import org.lwjgl.system.MemoryUtil.memFree
 
-/**
- * Implementation from OdinFabric
- * Original work: https://github.com/odtheking/OdinFabric
- *
- * @author OdinFabric
- */
 @Suppress("unused")
 object NVGRenderer {
 
@@ -61,7 +88,7 @@ object NVGRenderer {
   }
 
   fun beginFrame(width: Float, height: Float) {
-    if (drawing) throw IllegalStateException("[NVGRenderer] Already drawing, but called beginFrame")
+    check(!drawing) { "[NVGRenderer] Already drawing, but called beginFrame" }
 
     val framebuffer = mc.mainRenderTarget
     val glFramebuffer = (framebuffer.colorTexture as GlTexture).getFbo(
@@ -80,7 +107,8 @@ object NVGRenderer {
   }
 
   fun endFrame() {
-    if (!drawing) throw IllegalStateException("[NVGRenderer] Not drawing, but called endFrame")
+    check(drawing) { "[NVGRenderer] Not drawing, but called endFrame" }
+
     nvgEndFrame(vg)
     GlStateManager._disableCull()
     GlStateManager._disableDepthTest()
@@ -280,7 +308,7 @@ object NVGRenderer {
     w: Float,
     size: Float,
     color: Int,
-    font: Font,
+    font: Font = interFont,
     lineHeight: Float = 1f,
   ) {
     nvgFontSize(vg, size)
@@ -289,6 +317,17 @@ object NVGRenderer {
     color(color)
     nvgFillColor(vg, nvgColor)
     nvgTextBox(vg, x, y, w, text)
+  }
+
+  @JvmStatic
+  fun getWrappedStringHeight(text: String, maxWidth: Float, fontSize: Float, font: Font = interFont): Float {
+    nvgFontSize(vg, fontSize)
+    nvgFontFaceId(vg, getFontID(font))
+
+    val bounds = FloatArray(4)
+    nvgTextBoxBounds(vg, 0f, 0f, maxWidth, text, bounds)
+
+    return bounds[3] - bounds[1]
   }
 
   @JvmStatic

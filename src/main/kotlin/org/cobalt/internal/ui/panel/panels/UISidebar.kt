@@ -1,7 +1,7 @@
 package org.cobalt.internal.ui.panel.panels
 
-import java.awt.Color
 import net.minecraft.client.Minecraft
+import org.cobalt.api.ui.theme.ThemeManager
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.UIComponent
 import org.cobalt.internal.ui.components.tooltips.TooltipPosition
@@ -9,6 +9,7 @@ import org.cobalt.internal.ui.components.tooltips.UITooltip
 import org.cobalt.internal.ui.components.tooltips.impl.UITextTooltip
 import org.cobalt.internal.ui.panel.UIPanel
 import org.cobalt.internal.ui.screen.UIConfig
+import org.cobalt.internal.ui.screen.UIHudEditor
 import org.cobalt.internal.ui.util.isHoveringOver
 
 internal class UISidebar : UIPanel(
@@ -18,11 +19,15 @@ internal class UISidebar : UIPanel(
   height = 600F
 ) {
 
-  private val moduleButton = UIButton("/assets/cobalt/icons/box.svg") {
+  private val moduleButton = UIButton("/assets/cobalt/textures/ui/box.svg") {
     UIConfig.swapBodyPanel(UIAddonList())
   }
 
-  private val steveIcon = NVGRenderer.createImage("/assets/cobalt/steve.png")
+  private val hudButton = UIButton("/assets/cobalt/textures/ui/palette.svg") {
+    UIHudEditor().openUI()
+  }
+
+  private val steveIcon = NVGRenderer.createImage("/assets/cobalt/textures/steve.png")
   private val userIcon = try {
     NVGRenderer.createImage("https://mc-heads.net/avatar/${Minecraft.getInstance().user.profileId}/100/face.png")
   } catch (_: Exception) {
@@ -36,17 +41,22 @@ internal class UISidebar : UIPanel(
 
   init {
     components.addAll(
-      listOf(moduleButton)
+      listOf(moduleButton, hudButton)
     )
   }
 
   override fun render() {
-    NVGRenderer.rect(x, y, width, height, Color(18, 18, 18).rgb, 10F)
-    NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, Color(230, 230, 230).rgb)
+    NVGRenderer.rect(x, y, width, height, ThemeManager.currentTheme.background, 10F)
+    NVGRenderer.text("cb", x + width / 2F - 15F, y + 25F, 25F, ThemeManager.currentTheme.text)
 
     moduleButton
       .setSelected(true)
       .updateBounds(x + (width / 2F) - (moduleButton.width / 2F), y + 75F)
+      .render()
+
+    hudButton
+      .setSelected(isHoveringOver(x + (width / 2F) - (hudButton.width / 2F), y + 75F + 35F, hudButton.width, hudButton.height))
+      .updateBounds(x + (width / 2F) - (hudButton.width / 2F), y + 75F + 35F)
       .render()
 
     val userIconX = x + (width / 2F) - 16F
@@ -62,6 +72,18 @@ internal class UISidebar : UIPanel(
     )
 
     userIconTooltip.updateBounds(userIconX, userIconY, 32F, 32F)
+  }
+
+  override fun mouseClicked(button: Int): Boolean {
+    val userIconX = x + (width / 2F) - 16F
+    val userIconY = y + height - 32F - 20F
+
+    if (isHoveringOver(userIconX, userIconY, 32F, 32F) && button == 0) {
+      UIConfig.swapBodyPanel(UIThemeSelector())
+      return true
+    }
+
+    return super.mouseClicked(button)
   }
 
   private class UIButton(
@@ -85,9 +107,9 @@ internal class UISidebar : UIPanel(
         x, y, width, height,
 
         colorMask = if (hovering || selected)
-          Color(61, 94, 149).rgb
+          ThemeManager.currentTheme.accent
         else
-          Color(120, 120, 120).rgb
+          ThemeManager.currentTheme.textSecondary
       )
     }
 

@@ -6,21 +6,16 @@ import org.cobalt.api.event.impl.render.NvgEvent
 import org.cobalt.api.util.ui.NVGRenderer
 import org.cobalt.internal.ui.notification.UINotification
 
-object NotificationManager : NotificationAPI {
+object NotificationManager {
 
   private val mc: Minecraft =
     Minecraft.getInstance()
 
-  private val notifications = mutableListOf<UINotification>()
-  private const val MAX_NOTIFICATIONS = 5
-  private const val GAP = 10F
+  private val notifQueue = mutableListOf<UINotification>()
+  private val activeNotifications = mutableListOf<UINotification>()
 
-  override fun sendNotification(title: String, description: String, duration: Long) {
-    if (notifications.size >= MAX_NOTIFICATIONS) {
-      notifications.removeAt(0)
-    }
-
-    notifications.add(UINotification(title, description, duration))
+  fun queue(title: String, description: String, duration: Long = 2000L) {
+    notifQueue.add(UINotification(title, description, duration))
   }
 
   @Suppress("unused")
@@ -30,33 +25,48 @@ object NotificationManager : NotificationAPI {
     val screenWidth = window.screenWidth.toFloat()
     val screenHeight = window.screenHeight.toFloat()
 
+    updateNotifications(screenHeight)
     NVGRenderer.beginFrame(screenWidth, screenHeight)
 
-    val toRemove = mutableListOf<UINotification>()
+    activeNotifications.forEach { notif ->
+      val xOffset = notif.xOffset(screenWidth)
+      val yOffset = notif.yOffset
 
-    notifications.forEachIndexed { index, notification ->
-      if (notification.shouldRemove()) {
-        toRemove.add(notification)
-      } else {
-        val elapsed = System.currentTimeMillis() - notification.getCreatedAt()
-        if (elapsed > notification.getDuration()) {
-          notification.startClosing()
-        }
-        val yOffset = index * (notification.getNotificationHeight() + GAP)
-        val x = screenWidth - 350F - 15F
-        val y = screenHeight - notification.getNotificationHeight() - 15F - yOffset
-        notification.x = x
-        notification.y = y
-        notification.render()
-      }
+      NVGRenderer.push()
+      NVGRenderer.translate(xOffset, yOffset)
+      notif.render()
+      NVGRenderer.pop()
     }
 
-    notifications.removeAll(toRemove)
     NVGRenderer.endFrame()
   }
 
-  override fun clear() {
-    notifications.forEach { it.startClosing() }
+  private fun updateNotifications(screenHeight: Float) {
+    val currentTime = System.currentTimeMillis()
+
+    activeNotifications.forEach { it.checkExpiry(currentTime) }
+    activeNotifications.removeIf { it.isDone() }
+
+    while (activeNotifications.size < 3 && notifQueue.isNotEmpty()) {
+      val notif = notifQueue.removeAt(0)
+      val targetY = screenHeight - (activeNotifications.size + 1) * (notif.height + 10f) - 10f
+
+      notif.targetY = targetY
+      notif.previousY = targetY
+      notif.start(currentTime)
+
+      activeNotifications.add(notif)
+    }
+
+    activeNotifications.forEachIndexed { index, notif ->
+      val newTargetY = screenHeight - (index + 1) * (notif.height + 10f) - 10f
+      notif.moveTo(newTargetY)
+    }
+  }
+
+  fun clear() {
+    notifQueue.clear()
+    activeNotifications.clear()
   }
 
 }

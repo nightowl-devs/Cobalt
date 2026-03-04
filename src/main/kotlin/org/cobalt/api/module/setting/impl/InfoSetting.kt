@@ -14,7 +14,10 @@ class InfoSetting(
   val type: InfoType = InfoType.INFO,
 ) : Setting<String>(name ?: "", "Info", "") {
 
+  override val defaultValue: String = ""
+
   override fun read(element: JsonElement) {}
+
   override fun write(): JsonElement = JsonPrimitive("")
 
 }
