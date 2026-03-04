@@ -8,7 +8,7 @@ enum class InfoType {
   INFO, WARNING, SUCCESS, ERROR
 }
 
-internal class InfoSetting(
+class InfoSetting(
   name: String?,
   val text: String,
   val type: InfoType = InfoType.INFO,

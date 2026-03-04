@@ -442,6 +442,24 @@ object NVGRenderer {
     }.id
   }
 
+  private var blurStrength: Float = 0f
+
+  @JvmStatic
+  fun gaussianBlur(strength: Float) {
+
+    blurStrength = strength.coerceIn(0f, 1f)
+  }
+
+  fun enableBlur(f: Float) {
+    gaussianBlur(f)
+  }
+
+  fun disableBlur() {
+    gaussianBlur(0f)
+  }
+
+  internal fun getBlurStrength(): Float = blurStrength
+
   private class Scissor(val previous: Scissor?, val x: Float, val y: Float, val maxX: Float, val maxY: Float) {
     fun applyScissor() {
       if (previous == null) nvgScissor(vg, x, y, maxX - x, maxY - y)

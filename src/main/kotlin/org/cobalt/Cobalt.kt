@@ -10,6 +10,7 @@ import org.cobalt.api.util.TickScheduler
 import org.cobalt.internal.command.MainCommand
 import org.cobalt.internal.helper.Config
 import org.cobalt.internal.loader.AddonLoader
+import org.cobalt.internal.ui.progress.ProgressManager
 
 @Suppress("UNUSED")
 object Cobalt : ClientModInitializer {
@@ -24,7 +25,7 @@ object Cobalt : ClientModInitializer {
     CommandManager.dispatchAll()
 
     listOf(
-      TickScheduler, MainCommand, NotificationManager,
+      TickScheduler, MainCommand, NotificationManager, ProgressManager,
       RotationExecutor,
     ).forEach { EventBus.register(it) }
 
